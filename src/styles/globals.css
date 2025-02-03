@@ -1,0 +1,415 @@
+:root{
+  --color-1: black;
+  --text-color: white;
+  --accent-color: #006aff;
+}
+
+*{
+  margin: 0;
+  padding: 0;
+}
+
+
+html{
+  font-family: 'Inter', sans-serif;
+}
+
+button{
+  font-family: 'Inter', sans-serif;
+  height: 100%;
+  padding: 0.3rem 0.5rem ;
+  margin: 0rem;
+  background-color: var(--color-1);
+  color: white;
+  border: none;
+  border-radius: 3px;
+}
+
+button:hover, button:hover{
+  background-color: var(--accent-color);
+}
+
+/*Landing Page*/
+.landing-page{
+  display: grid;
+  border: 1px solid red;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  justify-content: center;
+}
+
+
+h1{
+  justify-self: center;
+}
+
+
+/*Login Veterinario - Utente*/
+.logincontent {
+  display: grid;
+  border: 1px solid black;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 30px auto;  /* Auto sui lati per centrarlo */
+  grid-template-rows: repeat(auto-fit, 1fr);
+  grid-template-columns: 1fr;
+  gap: 15px;
+  justify-content: center;
+  justify-items: center;
+  text-align: center;
+  align-items: center;
+  width: 80%;  /* Occupa l’80% dello schermo */
+  max-width: 400px;  /* Non più largo di 600px */
+}
+
+/*prova*/
+.registrationcontent{
+  display: grid;
+  border: 1px solid black;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 30px auto;  /* Auto sui lati per centrarlo */
+  grid-template-rows: repeat(auto-fit, 1fr);
+  grid-template-columns: 1fr;
+  gap: 15px;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  width: 80%;  /* Occupa l’80% dello schermo */
+  max-width: 1100px;
+}
+
+.logincontent .header{
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  padding: 0.8rem;
+  margin: 0%;
+  border: 1px solid black;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/*prova*/
+.registrationcontent .header{
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  padding: 0.8rem;
+  margin: 0%;
+  border: 1px solid black;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.logincontent .login-form{
+  text-align: center;
+  padding: 30px 30px;
+  border: 1px solid black;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/*prova*/
+.registrationcontent .login-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  column-gap: 15px;
+  text-align: center;
+  padding: 30px;
+  border: 1px solid black;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/*prova*/
+.registrationcontent .login-form button{
+  width: 100%;
+  padding: 0.5rem;
+  justify-self: end; /* Lo allinea a destra della colonna */
+}
+
+.registrationcontent .login-form .button-container{
+  grid-column: -2 / -1; /* Lo posiziona nell'ultima colonna */
+  justify-self: end; /* Lo allinea a destra */
+  width: 100%;
+}
+
+.logincontent .login-form button{
+  width: 100%;
+  padding: 0.5rem;
+}
+
+
+.form-group{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-bottom: 25px;
+  width: 100%;
+}
+
+
+.form-group input{
+  border: none;
+  background-color: lightgray;
+  border-radius: 3px;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+/*Fine Login Veterinario - Utente*/
+
+
+/*Registrazione Veterinario - Utente*/
+.registration-page{
+  display: grid;
+  border: 1px solid red;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  justify-content: center;
+}
+
+.registration-form /*DA RIVEDERE E FARE ANCHE REGISTRAZIONE UTENTE COSI*/
+{
+  display: grid;
+  grid-template-columns: 25% 25% 25% 25%;
+  grid-template-rows: 20% 25% 25% 25% 25%;
+  column-gap: 15px;
+  justify-self: center; /* Centra orizzontalmente */
+  align-self: center;   /* Centra verticalmente */
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  text-align: center;
+  grid-row: 5 / 8;
+  grid-column: 2 / 7;
+  background-color: lightgray;
+  padding: 80px 40px;
+}
+
+.registration-form h2{
+  grid-row: 1;
+  grid-column: 1 / 5;
+}
+.registration-form .form-group{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+  padding-bottom: 15px;
+}
+
+.registration-form button{
+  grid-row: 5;
+  grid-column: 4;
+  justify-items: center;
+  margin-left: 50%;
+  margin-right: 4%;
+}
+
+/*Navbar*/
+.navbar{
+  height: 60px;
+  background-color: var(--color-1);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.indexhead{
+  height: auto;
+  padding: 0.6rem;
+  background-color: var(--color-1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.indexhead h1, .indexhead p, .indexhead a{
+  text-decoration: none;
+  color: white;
+}
+
+.link-container{
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.link-container a{
+  height: 100%;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: var(--text-color);
+  text-decoration: none;
+  padding: 0 20px;
+}
+
+.link-container a:hover{
+  background-color: var(--accent-color);
+}
+
+.profile{
+  margin-left: auto;
+}
+
+.navbar svg{
+  fill: var(--text-color);
+}
+
+#sidebar-active{
+  display: none;
+}
+
+.open-sidebar-button, .close-sidebar-button{
+  display: none;
+}
+
+@media screen and (max-width: 768px){
+  .link-container{
+    flex-direction: column;
+    align-items: flex-start;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    z-index: 10;
+    width: 250px;
+
+    background-color: var(--color-1);
+    box-shadow: -5px 0 5px rgba(0, 0, 0, 0.20);
+    transition: 0.75s ease-in;
+    transition: 0.75s ease-out;
+  }
+
+  .navbar{
+    justify-content: flex-end;
+  }
+  
+  .navbar a{
+    box-sizing: border-box;
+    height: auto;
+    width: 100%;
+    padding: 20px 30px;
+    justify-content: flex-start;
+  }
+
+  .open-sidebar-button, .close-sidebar-button{
+    display: block;
+    padding: 20px;
+  }
+
+  #sidebar-active:checked ~ .link-container{
+    right: 0;
+  }
+
+  #sidebar-active:checked ~ #overlay{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9;
+  }
+}
+/*Fine Navbar*/
+
+/*Pagine*/
+
+.content{
+  display: grid;
+  border: 1px solid black;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
+/*ProfilePopup*/
+.popup{
+  display: grid;
+  border: 1px solid black;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 30px;
+  grid-template-rows: repeat(auto, minmax(300px, 1fr));
+  gap: 15px;
+  justify-content: center;
+  justify-self: center;
+  text-align: center;
+  align-items: center;
+  width: 50%;
+}
+
+.popup .header{
+  display: flex;
+  justify-content: flex-start;
+  align-content: center;
+  place-items: center;
+  padding: 0.8rem;
+  margin: 0%;
+  border: 1px solid black;
+  border-radius: 6px;
+}
+
+.popup .header svg{
+  fill: black;
+  margin-left: auto;
+}
+
+.popup .body{
+  border: 1px solid black;
+  border-radius: 6px;
+  padding: 1rem;
+}
+.popup .button-group{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border: 1px solid black;
+  border-radius: 6px;
+  padding: 0.6rem;
+  gap: 0.6rem;
+}
+
+
+
+
+@media screen and (max-width: 768px){
+  .popup{
+    width: 60%;
+  }
+}
+
+@media screen and (max-width: 425px){
+  h2 {
+    font-size: 1.4rem;
+  }
+  
+  p {
+    font-size: 0.9rem;
+  }
+
+  .content{
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  .popup{
+    width: auto;
+  }
+
+  .login-form{
+    width: auto;
+  }
+}
