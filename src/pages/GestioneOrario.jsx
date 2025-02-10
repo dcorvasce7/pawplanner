@@ -1,9 +1,10 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
+import AuthGuard from '../components/AuthGuard';
 
 function GestioneOrario() {
   return (
-    <>
+    <AuthGuard>
       <Navbar />
       <div className="content">
         <div>
@@ -11,7 +12,7 @@ function GestioneOrario() {
           <p>Qui puoi gestire il tuo orario di lavoro.</p>
         </div>
       </div>
-    </>
+    </AuthGuard>
   );
 }
 

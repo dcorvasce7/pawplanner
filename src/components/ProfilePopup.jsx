@@ -1,25 +1,146 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import FormComponent from './FormComponent'; // Importiamo il FormComponent
 
 function ProfilePopup() {
-    return (
-            <>
-                <div className="header">
-                    <h2>Il Mio Profilo</h2>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#e8eaed"><path d="M222-255q63-44 125-67.5T480-346q71 0 133.5 23.5T739-255q44-54 62.5-109T820-480q0-145-97.5-242.5T480-820q-145 0-242.5 97.5T140-480q0 61 19 116t63 109Zm257.81-195q-57.81 0-97.31-39.69-39.5-39.68-39.5-97.5 0-57.81 39.69-97.31 39.68-39.5 97.5-39.5 57.81 0 97.31 39.69 39.5 39.68 39.5 97.5 0 57.81-39.69 97.31-39.68 39.5-97.5 39.5Zm.66 370Q398-80 325-111.5t-127.5-86q-54.5-54.5-86-127.27Q80-397.53 80-480.27 80-563 111.5-635.5q31.5-72.5 86-127t127.27-86q72.76-31.5 155.5-31.5 82.73 0 155.23 31.5 72.5 31.5 127 86t86 127.03q31.5 72.53 31.5 155T848.5-325q-31.5 73-86 127.5t-127.03 86Q562.94-80 480.47-80Zm-.47-60q55 0 107.5-16T691-212q-51-36-104-55t-107-19q-54 0-107 19t-104 55q51 40 103.5 56T480-140Zm0-370q34 0 55.5-21.5T557-587q0-34-21.5-55.5T480-664q-34 0-55.5 21.5T403-587q0 34 21.5 55.5T480-510Zm0-77Zm0 374Z"/></svg>
-                </div>
+  const [user, setUser] = useState(null);
+  const [formData, setFormData] = useState({
+    Nome: '',
+    Cognome: '',
+    email: '',
+    telefono: '',
+    ragione_sociale: '',
+    partita_iva: '',
+    codice_fiscale: '',
+    indirizzo: '',
+    cap: '',
+    citta: '',
+    specializzazione: '',
+    num_iscrizione_albo: ''
+  });
 
-                <div className="body">
-                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Est voluptatem dolore nulla quisquam quod sunt doloribus aliquid autem eaque deleniti? Tenetur asperiores doloribus et accusamus voluptatibus. Vel tempore dolorum illum?
-                        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Repellat placeat rerum labore, hic sequi cupiditate dolores animi, consectetur sit ab rem assumenda doloremque incidunt est odio voluptatum repudiandae iste aperiam.
-                        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dicta neque, laborum eaque laboriosam ipsam error nisi tenetur consequuntur? Neque tenetur aspernatur magnam dicta architecto in sed delectus itaque repudiandae exercitationem.</p>
-                </div>
-                <div className="button-group">
-                    <button className="edit-btn">Modifica</button>
-                    <button className="close-btn">Chiudi</button>
-                </div>
-            </>
-        
+  const [isEditable, setIsEditable] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Recupera l'ID dalla sessione
+        const sessionResponse = await axios.get('/api/session');
+        const idVeterinario = sessionResponse.data.user?.ID_Veterinario;
+
+        if (idVeterinario) {
+          // Usa l'ID per fare la richiesta alla tua API per ottenere i dati
+          const response = await axios.get(`/api/veterinario?id=${idVeterinario}`);
+          if (response.data) {
+            setUser(response.data);
+            setFormData({
+              Nome: response.data.Nome || '',
+              Cognome: response.data.Cognome || '',
+              email: response.data.email || '',
+              telefono: response.data.telefono || '',
+              ragione_sociale: response.data.ragione_sociale || '',
+              partita_iva: response.data.partita_iva || '',
+              codice_fiscale: response.data.codice_fiscale || '',
+              indirizzo: response.data.indirizzo || '',
+              cap: response.data.cap || '',
+              citta: response.data.citta || '',
+              specializzazione: response.data.specializzazione || '',
+              num_iscrizione_albo: response.data.num_iscrizione_albo || ''
+            });
+            setOriginalData(response.data);
+          }
+        } else {
+          console.error('ID Veterinario non trovato nella sessione.');
+        }
+      } catch (error) {
+        console.error('Errore nel recupero dei dati del veterinario:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleSubmit = async (e, formData) => {
+    e.preventDefault();
+
+    // Controlla se ci sono state modifiche rispetto ai dati originali
+    const isModified = Object.keys(formData).some(
+      (key) => formData[key] !== originalData[key]
     );
+
+    if (!isModified) {
+      alert('Nessuna modifica effettuata');
+      setIsEditable(false);
+      return;
+    }
+
+    try {
+      const response = await axios.put(`/api/veterinario?id=${user.ID_Veterinario}`, formData);
+      if (response.status === 200) {
+        alert('Dati aggiornati con successo');
+        setOriginalData(formData);
+        setIsEditable(false);
+      } else {
+        alert('Errore nell\'aggiornamento dei dati');
+      }
+    } catch (error) {
+      console.error('Errore nell\'aggiornamento dei dati:', error);
+      alert('Errore nell\'aggiornamento dei dati');
+    }
+  };
+
+  const handleEditClick = () => {
+    setIsEditable(true);
+  };
+
+  const specializzazioni = [
+    'Medicina generale',
+    'Chirurgia veterinaria',
+    'Dermatologia',
+    'Oncologia',
+    'Ortopedia',
+    'Cardiologia',
+    'Neurologia',
+    'Odontoiatria',
+    'Nutrizione animale',
+    'Comportamento animale'
+  ];
+
+  const inputs = [
+    { id: 'Nome', label: 'Nome', type: 'text', name: 'Nome', value: formData.Nome, disabled: true },
+    { id: 'Cognome', label: 'Cognome', type: 'text', name: 'Cognome', value: formData.Cognome, disabled: true },
+    { id: 'email', label: 'Email', type: 'email', name: 'email', value: formData.email, disabled: !isEditable },
+    { id: 'telefono', label: 'Telefono', type: 'text', name: 'telefono', value: formData.telefono, disabled: !isEditable },
+    { id: 'ragione_sociale', label: 'Ragione Sociale', type: 'text', name: 'ragione_sociale', value: formData.ragione_sociale, disabled: !isEditable },
+    { id: 'partita_iva', label: 'Partita IVA', type: 'text', name: 'partita_iva', value: formData.partita_iva, disabled: !isEditable },
+    { id: 'codice_fiscale', label: 'Codice Fiscale', type: 'text', name: 'codice_fiscale', value: formData.codice_fiscale, disabled: true },
+    { id: 'indirizzo', label: 'Indirizzo', type: 'text', name: 'indirizzo', value: formData.indirizzo, disabled: !isEditable },
+    { id: 'cap', label: 'CAP', type: 'text', name: 'cap', value: formData.cap, disabled: !isEditable },
+    { id: 'citta', label: 'Città', type: 'text', name: 'citta', value: formData.citta, disabled: !isEditable },
+    { id: 'specializzazione', label: 'Specializzazione', type: 'select', name: 'specializzazione', value: formData.specializzazione, disabled: !isEditable, options: specializzazioni },
+    { id: 'num_iscrizione_albo', label: 'Numero Iscrizione Albo', type: 'text', name: 'num_iscrizione_albo', value: formData.num_iscrizione_albo, disabled: true }
+  ];
+
+  return (
+    <>
+      <div className="header">
+        <h2>Il Mio Profilo</h2>
+      </div>
+
+      <FormComponent
+        inputs={inputs}
+        className="login-form"
+        formData={formData}
+        onSubmit={handleSubmit}
+      />
+
+      <div className="button-group">
+        <button onClick={handleEditClick} disabled={isEditable}>Modifica</button>
+        <button type="submit" form="form" disabled={!isEditable}>Salva</button>
+      </div>
+    </>
+  );
 }
 
 export default ProfilePopup;

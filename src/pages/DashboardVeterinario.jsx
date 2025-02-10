@@ -1,10 +1,11 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import CalendarioAppuntamenti from '../components/CalendarioAppuntamenti';
+import AuthGuard from '../components/AuthGuard';
 
 function DashboardVeterinario() {
   return (
-    <>
+    <AuthGuard>
       <Navbar />
       <div className="content">
         <div>
@@ -14,9 +15,8 @@ function DashboardVeterinario() {
         <div>
           <CalendarioAppuntamenti /> 
         </div>
-        
       </div>
-    </>
+    </AuthGuard>
   );
 }
 

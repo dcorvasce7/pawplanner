@@ -1,9 +1,10 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
+import AuthGuard from '../components/AuthGuard';
 
 function FeedbackRecensioni() {
   return (
-    <>
+    <AuthGuard>
       <Navbar />
       <div className="content">
         <div>
@@ -11,7 +12,7 @@ function FeedbackRecensioni() {
           <p>Qui puoi visualizzare i feedback e le recensioni dei clienti.</p>
         </div>
       </div>
-    </>
+    </AuthGuard>
   );
 }
 
