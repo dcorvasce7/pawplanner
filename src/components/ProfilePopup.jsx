@@ -25,33 +25,39 @@ function ProfilePopup() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Recupera l'ID dalla sessione
+        // Recupera i dati dell'utente dalla sessione tramite il JWT
         const sessionResponse = await axios.get('/api/session');
-        const idVeterinario = sessionResponse.data.user?.ID_Veterinario;
+        console.log(sessionResponse.data); // Aggiungi questo log
+        
+        if (sessionResponse.data.user) {
+          const idVeterinario = sessionResponse.data.user.id;
 
-        if (idVeterinario) {
-          // Usa l'ID per fare la richiesta alla tua API per ottenere i dati
-          const response = await axios.get(`/api/veterinario?id=${idVeterinario}`);
-          if (response.data) {
-            setUser(response.data);
-            setFormData({
-              Nome: response.data.Nome || '',
-              Cognome: response.data.Cognome || '',
-              email: response.data.email || '',
-              telefono: response.data.telefono || '',
-              ragione_sociale: response.data.ragione_sociale || '',
-              partita_iva: response.data.partita_iva || '',
-              codice_fiscale: response.data.codice_fiscale || '',
-              indirizzo: response.data.indirizzo || '',
-              cap: response.data.cap || '',
-              citta: response.data.citta || '',
-              specializzazione: response.data.specializzazione || '',
-              num_iscrizione_albo: response.data.num_iscrizione_albo || ''
-            });
-            setOriginalData(response.data);
+          if (idVeterinario) {
+            // Usa l'ID per fare la richiesta alla tua API per ottenere i dati del veterinario
+            const response = await axios.get(`/api/veterinario?id=${idVeterinario}`);
+            if (response.data) {
+              setUser(response.data);
+              setFormData({
+                Nome: response.data.Nome || '',
+                Cognome: response.data.Cognome || '',
+                email: response.data.email || '',
+                telefono: response.data.telefono || '',
+                ragione_sociale: response.data.ragione_sociale || '',
+                partita_iva: response.data.partita_iva || '',
+                codice_fiscale: response.data.codice_fiscale || '',
+                indirizzo: response.data.indirizzo || '',
+                cap: response.data.cap || '',
+                citta: response.data.citta || '',
+                specializzazione: response.data.specializzazione || '',
+                num_iscrizione_albo: response.data.num_iscrizione_albo || ''
+              });
+              setOriginalData(response.data);
+            }
+          } else {
+            console.error('ID Veterinario non trovato nella sessione.');
           }
         } else {
-          console.error('ID Veterinario non trovato nella sessione.');
+          console.error('Nessun dato utente trovato');
         }
       } catch (error) {
         console.error('Errore nel recupero dei dati del veterinario:', error);
@@ -134,7 +140,6 @@ function ProfilePopup() {
         formData={formData}
         onSubmit={handleSubmit}
       />
-
       <div className="button-group">
         <button onClick={handleEditClick} disabled={isEditable}>Modifica</button>
         <button type="submit" form="form" disabled={!isEditable}>Salva</button>

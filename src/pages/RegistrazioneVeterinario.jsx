@@ -22,8 +22,8 @@ function RegistrazioneVeterinario() {
   ];
 
   const inputs = [
-    { label: 'Nome', type: 'text', id: 'nome', name: 'nome', required: true },
-    { label: 'Cognome', type: 'text', id: 'cognome', name: 'cognome', required: true },
+    { label: 'Nome', type: 'text', id: 'Nome', name: 'Nome', required: true },
+    { label: 'Cognome', type: 'text', id: 'Cognome', name: 'Cognome', required: true },
     { label: 'Email', type: 'email', id: 'email', name: 'email', required: true, autoComplete: 'email' },
     { label: 'Telefono', type: 'text', id: 'telefono', name: 'telefono', required: true },
     { label: 'Ragione Sociale', type: 'text', id: 'ragione_sociale', name: 'ragione_sociale' },
@@ -49,7 +49,7 @@ function RegistrazioneVeterinario() {
 
     console.log('handleFormSubmit chiamata con dati:', formData);
     try {
-      const response = await axios.post('/api/register', formData);
+      const response = await axios.post('/api/register_veterinario', formData);
   
       if (response.status === 201) {
         setMessage('Registrazione avvenuta con successo!');

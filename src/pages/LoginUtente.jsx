@@ -21,7 +21,7 @@ function LoginUtente() {
         console.log('Login successful:', response.data);
         setMessage('Login riuscito');
         setTimeout(() => {
-          router.push('/'); // Reindirizza alla pagina di dashboard
+          router.push('/DashboardUtente'); // Reindirizza alla pagina di dashboard
         }, 2000);
       } else {
         // Se ci sono errori nel backend

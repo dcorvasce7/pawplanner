@@ -15,7 +15,7 @@ function LoginVeterinario() {
     e.preventDefault();
 
     try {
-      const response = await axios.post('/api/login', formData);
+      const response = await axios.post('/api/login_veterinario', formData);
 
       if (response.status === 200) {
         console.log('Login successful:', response.data);

@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
       // Inserimento nel database con la password cifrata
       const query = `
-      INSERT INTO utente (Nome, Cognome, Email, numero_di_telefono, password)
+      INSERT INTO utente (Nome, Cognome, Email, Numero_di_telefono, password)
       VALUES (?, ?, ?, ?, ?)
     `;    
 

@@ -5,8 +5,9 @@ import AuthGuard from '../components/AuthGuard';
 
 function ProfiloVeterinario() {
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['veterinario']}>
       <Navbar />
+      <div className="margin-divisor"></div>
       <div className='popup'>
         <ProfilePopup />
       </div>

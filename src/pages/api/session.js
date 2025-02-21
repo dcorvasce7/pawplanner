@@ -1,23 +1,23 @@
-import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
 
-export default async function handler(req, res) {
+export default function handler(req, res) {
   if (req.method === 'GET') {
-    const cookies = parse(req.headers.cookie || '');
-    const session = cookies.session ? JSON.parse(cookies.session) : null;
+    try {
+      // Prendi il token dal cookie
+      const token = req.cookies.token;
+      if (!token) {
+        return res.status(401).json({ error: 'Non autenticato' });
+      }
 
-    // Log per vedere cosa c'è nei cookies
-    console.log('Cookies:', cookies);
+      // Decodifica il token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (session) {
-      // Log per vedere cosa c'è nella sessione
-      console.log('Session data:', session);
-      
-      return res.status(200).json({ user: session });
-    } else {
-      console.log('Sessione non trovata');
-      return res.status(401).json({ error: 'Non autenticato' });
+      // Restituisci l'utente (o altre informazioni, come ruolo, se necessario)
+      return res.status(200).json({ user: { id: decoded.id, email: decoded.email, role: decoded.role } });
+    } catch (error) {
+      return res.status(401).json({ error: 'Token non valido' });
     }
   } else {
-    res.status(405).json({ error: 'Metodo non consentito' });
+    return res.status(405).json({ error: 'Metodo non consentito' });
   }
 }
