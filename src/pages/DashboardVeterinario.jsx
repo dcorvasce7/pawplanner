@@ -11,12 +11,8 @@ function DashboardVeterinario() {
       <Navbar />
       <div className="margin-divisor"></div>
       <div className="dashboard-content">
-      <div className="content">
           <CalendarioAppuntamenti /> 
-        </div>
-      <div className="content">
-        <Emergenze role="veterinario" />
-      </div>
+          <Emergenze role="veterinario" />
       </div>
 
     </AuthGuard>

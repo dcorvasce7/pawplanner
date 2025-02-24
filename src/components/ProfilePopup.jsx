@@ -129,7 +129,7 @@ function ProfilePopup() {
   ];
 
   return (
-    <>
+    <div className="popup">
       <div className="header">
         <h2>Il Mio Profilo</h2>
       </div>
@@ -144,7 +144,7 @@ function ProfilePopup() {
         <button onClick={handleEditClick} disabled={isEditable}>Modifica</button>
         <button type="submit" form="form" disabled={!isEditable}>Salva</button>
       </div>
-    </>
+    </div>
   );
 }
 

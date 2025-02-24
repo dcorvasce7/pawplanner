@@ -306,24 +306,199 @@ h1{
   align-items: center;
 }
 
+
+/*Dashboard*/
 .dashboard-content{
   display: grid;
-  border: 1px solid black;
   border-radius: 12px;
   padding: 10px;
-  margin: 30px;
-  grid-template-columns: minmax(400px, 3fr) minmax(200px, 1fr);
-  gap: 15px;
+  grid-template-columns: minmax(540px, 3fr) 1fr;
+  gap: 10px;
+  place-items: center;
+}
+
+/* 📌 Media Query per schermi piccoli */
+@media (max-width: 1150px) {
+  .dashboard-content {
+    grid-template-columns: 1fr; /* ✅ Gli elementi vanno uno sotto l'altro */
+    grid-template-rows:  3fr 1fr;
+    align-items: start;
+    justify-content: center;
+  }
+}
+
+/*Emergenze*/
+.emergence-content{
+  display: grid;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2);
+  grid-template-rows: repeat(auto, minmax(300px, 1fr));
+  gap: 10px;
   justify-content: center;
   text-align: center;
   align-items: center;
+  align-self: flex-start;
+  place-items: center;
+  max-width: 445px;
 }
+
+.emergence-content .header{
+  display: flex;
+  justify-content: center;
+  padding: 0.8rem;
+  background-color: lightgray;
+  border-radius: 6px;
+  gap: 15px;
+  align-items: center;
+  max-width: 100%;
+}
+
+.emergence-content .form-group{
+  display: flex;  
+  flex-direction: row;
+}
+
+.emergence-content .emergence-list{
+  width: 100%;
+  max-width: 100%;
+}
+.emergence-content .emergence-item{
+
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 1fr;
+    grid-column-gap: 10px;
+    grid-row-gap: 0px;
+}
+
+/* CalendarioAppuntamenti.css */
+.calendario-appuntamenti {
+  gap: 15px;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+  min-width: 300px;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2);
+  margin: 1rem; /* Centra il contenuto orizzontalmente */
+}
+
+.fc-toolbar-chunk {
+  text-align: center;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+/* Media queries per la responsività */
+@media screen and (max-width: 768px) {
+
+  .calendario-appuntamenti {
+    width: 90%;
+    min-width: 200px; /* ✅ Non diventa troppo piccolo */
+  }
+  .custom-modal {
+    width: 60%;
+  }
+
+  .fc-theme-standard{
+    font-size: 0.8rem;
+  }
+
+  .fc-toolbar-chunk {
+
+    font-size: 0.8rem; /* Ridimensiona il testo dei pulsanti */
+    padding: 0px; /* Riduce il padding dei pulsanti */
+    width: 100%; /* I pulsanti occupano tutta la larghezza disponibile */
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.2rem; /* Ridimensiona il titolo della toolbar */
+  }
+}
+
+@media screen and (max-width: 562px) {
+
+  .fc-toolbar {
+    display: flex; /* Mostra i pulsanti in linea */
+    flex-direction: column;
+    gap: 10px; /* Spaziatura tra i pulsanti */
+  } 
+}
+
+@media screen and (max-width: 500px) {
+  .calendario-appuntamenti {
+    width: 90%;
+    min-width: 200px;
+    margin: 0;
+    padding: 3vh; /* ⬅️ Adatta il padding in base alla larghezza dello schermo */
+  }
+
+  .dashboard-content{
+    justify-self: center;
+  }
+
+  .emergence-content{
+    width: 90%;
+    min-width: 200px;
+  }
+
+  .dashboard-content{
+    border: none;
+  }
+
+  .custom-modal {
+    width: 70%;
+  }
+
+}
+
+.custom-overlay {
+  position: fixed; /* Copre l'intero schermo */
+  top: 0;
+  left: 0;
+  width: 100vw; /* Occupa tutta la larghezza */
+  height: 100vh; /* Occupa tutta l'altezza */
+  background-color: rgba(0, 0, 0, 0.5); /* Sfondo semi-trasparente */
+  z-index: 998; /* Deve essere sotto la modale */
+}
+
+.custom-modal {
+  position: absolute; /* Posizione relativa all'overlay */
+  top: 50%; /* Centrato verticalmente */
+  left: 50%; /* Centrato orizzontalmente */
+  transform: translate(-50%, -50%); /* Trasla per centrare esattamente */
+  width: 40%; /* Larghezza della modale */
+  max-width: 600px; /* Larghezza massima */
+  overflow: auto; /* Gestisce l'overflow */
+  background-color: white; /* Colore di sfondo */
+  padding: 20px 10px; /* Padding interno */
+  border-radius: 12px; /* Raggio dei bordi */
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2); /* Ombra della modale */
+  z-index: 999; /* Sopra l'overlay */
+  display: grid; /* Uso di grid se necessario */
+  grid-template-rows: repeat(auto-fit, 1fr); /* Imposta righe del grid */
+  gap: 15px; /* Spaziatura tra gli elementi */
+  justify-content: center; /* Centro del contenuto */
+  text-align: center; /* Allineamento del testo */
+  align-items: center; /* Allineamento verticale degli elementi */
+}
+
+
+
+
+
 
 /*ProfilePopup*/
 .popup{
   display: grid;
-  border: 1px solid black;
   border-radius: 12px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2);  border-radius: 12px;
   padding: 10px;
   margin: 30px;
   grid-template-rows: repeat(auto, minmax(300px, 1fr));

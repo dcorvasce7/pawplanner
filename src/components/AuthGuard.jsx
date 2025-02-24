@@ -16,10 +16,10 @@ const AuthGuard = ({ children, allowedRoles = [] }) => {
           setIsAuthenticated(true);
           setUserRole(response.data.user.role);  // Supponiamo che `role` sia parte della risposta
         } else if (response.status === 401) {
-          router.push('/LoginVeterinario');
+          router.push('/');
         }
       } catch (error) {
-        router.push('/LoginVeterinario');
+        router.push('/');
       } finally {
         setLoading(false);
       }

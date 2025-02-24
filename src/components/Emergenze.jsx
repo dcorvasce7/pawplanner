@@ -7,10 +7,26 @@ function Emergenze({ role }) {
   const [descrizione, setDescrizione] = useState('');
   const [loading, setLoading] = useState(true);
   const [hasActiveEmergenza, setHasActiveEmergenza] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    fetchEmergenze();
+    fetchUserId();
   }, []);
+
+  useEffect(() => {
+    if (userId !== null) {
+      fetchEmergenze();
+    }
+  }, [userId]);
+
+  const fetchUserId = async () => {
+    try {
+      const response = await axios.get('/api/session');
+      setUserId(response.data.user.id);
+    } catch (error) {
+      console.error('Errore nel recupero dell\'ID utente:', error);
+    }
+  };
 
   const fetchEmergenze = async () => {
     try {
@@ -20,7 +36,7 @@ function Emergenze({ role }) {
 
       // Controlla se l'utente ha un'emergenza attiva
       if (role === 'utente') {
-        const activeEmergenza = response.data.find(emergenza => emergenza.Stato === 'Attiva');
+        const activeEmergenza = response.data.find(emergenza => emergenza.Stato === 'Attiva' && emergenza.ID_Utente === userId);
         setHasActiveEmergenza(!!activeEmergenza);
       }
     } catch (error) {
@@ -62,11 +78,14 @@ function Emergenze({ role }) {
   }
 
   return (
-    <div>
-      <h2>Gestione Emergenze</h2>
-      <button onClick={fetchEmergenze}>Aggiorna</button>
+    <div className='emergence-content'>
+      <div className="header">
+        <h2>Gestione Emergenze</h2>
+        <button onClick={fetchEmergenze}>Aggiorna</button>
+      </div>
+
       {role === 'utente' && !hasActiveEmergenza && (
-        <div>
+        <div className="form-group">
           <input
             type="text"
             value={descrizione}
@@ -76,31 +95,40 @@ function Emergenze({ role }) {
           <button onClick={handleCreate}>Crea Emergenza</button>
         </div>
       )}
+      
       {role === 'utente' && hasActiveEmergenza && (
         <p>Hai già un'emergenza attiva. Risolvila o annullala prima di crearne una nuova.</p>
       )}
-      <ul>
+
+      <ul className="emergence-list">
         {emergenze.map((emergenza) => {
           const dataOra = new Date(`${emergenza.Data}`);
-          const dataFormattata = isNaN(dataOra) ? 'Data non valida' : format(dataOra, 'dd/MM/yyyy');
+          const dataFormattata = isNaN(dataOra) ? 'Data non valida' : format(dataOra, 'dd/MM/yyyy hh:mm');
           return (
-            <li key={emergenza.ID_Emergenza}>
-              <p>{emergenza.Descrizione}</p>
-              <p>{dataFormattata} {emergenza.Ora}</p>
-              <p>Stato: {emergenza.Stato}</p>
+
+            <li key={emergenza.ID_Emergenza} className='emergence-item'>
+              <p className='description'>{emergenza.Descrizione}</p>
+              <p className='date'>{dataFormattata}</p>
+              <p className='state'>Stato: {emergenza.Stato}</p>
               {role === 'veterinario' && (
                 <>
-                  <button onClick={() => handleUpdate(emergenza.ID_Emergenza, 'Risolta')}>Risolta</button>
-                  <button onClick={() => handleDelete(emergenza.ID_Emergenza)}>Annulla</button>
+                  <p>Creato da: {emergenza.Nome} {emergenza.Cognome}</p>
+                  <div className="heade">
+                  {emergenza.Stato !== 'Risolta' && (
+                      <button onClick={() => handleUpdate(emergenza.ID_Emergenza, 'Risolta')}>Risolta</button>
+                  )}
+                      <button onClick={() => handleDelete(emergenza.ID_Emergenza)}>Elimina</button>
+                    </div>
                 </>
               )}
-              {role === 'utente' && emergenza.Stato === 'Attiva' && (
-                <button onClick={() => handleDelete(emergenza.ID_Emergenza)}>Annulla</button>
+              {role === 'utente' && emergenza.Stato === 'Attiva' && emergenza.ID_Utente === userId && (
+                <button onClick={() => handleDelete(emergenza.ID_Emergenza)}>Elimina</button>
               )}
             </li>
           );
         })}
       </ul>
+      
     </div>
   );
 }

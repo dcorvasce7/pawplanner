@@ -13,9 +13,6 @@ function LandingPage() {
         <div className="popup">
           <p>Sei un veterinario? <Link href="/LoginVeterinario">Accedi</Link> <Link href="/RegistrazioneVeterinario">Registrati</Link></p>
         </div>
-        <div className="popup">
-          <p>Accesso dashboard <Link href="/DashboardVeterinario">Accedi</Link></p>
-          </div>
       </div>
       </>
   );

@@ -10,12 +10,8 @@ function DashboardUtente() {
       <NavbarUtente />
       <div className="margin-divisor"></div>
       <div className="dashboard-content">
-        <div className="content">
           <CalendarioOrari /> 
-        </div>
-        <div className="content">
           <Emergenze role="utente" />
-      </div>
       </div>
     </AuthGuard>
   );

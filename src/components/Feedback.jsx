@@ -7,10 +7,22 @@ function Feedback({ role }) {
   const [testo, setTesto] = useState('');
   const [valutazione, setValutazione] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    fetchUserId();
     fetchFeedbacks();
   }, []);
+
+  const fetchUserId = async () => {
+    try {
+      const response = await axios.get('/api/session');
+      setUserId(response.data.user.id);
+    } catch (error) {
+      console.error('Errore nel recupero dell\'ID utente:', error);
+    }
+  };
 
   const fetchFeedbacks = async () => {
     try {
@@ -30,7 +42,7 @@ function Feedback({ role }) {
     }
     setError('');
     try {
-      const response = await axios.post('/api/feedback', { testo, valutazione });
+      await axios.post('/api/feedback', { testo, valutazione });
       setTesto('');
       setValutazione(1);
       fetchFeedbacks(); // Aggiorna i feedback dopo la creazione
@@ -41,8 +53,14 @@ function Feedback({ role }) {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/feedback?id=${id}`);
-      fetchFeedbacks(); // Aggiorna i feedback dopo la cancellazione
+      const response = await axios.delete(`/api/feedback?id=${id}`);
+      console.log('Response data:', response.data); // Log della risposta dell'API
+      console.log('User ID:', userId); // Log dell'ID utente corrente
+      if (response.data.userId === userId) {
+        fetchFeedbacks(); // Aggiorna i feedback dopo la cancellazione
+      } else {
+        console.error('Non autorizzato a eliminare questo feedback');
+      }
     } catch (error) {
       console.error('Errore nell\'eliminazione del feedback:', error);
     }
@@ -69,6 +87,7 @@ function Feedback({ role }) {
             ))}
           </select>
           <button onClick={handleCreate}>Crea Feedback</button>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
       )}
       <ul>
@@ -81,7 +100,7 @@ function Feedback({ role }) {
               <p>Testo: {feedback.Testo}</p>
               <p>Valutazione: {feedback.Valutazione}</p>
               <p>Data: {dataFormattata}</p>
-              {role === 'utente' && (
+              {role === 'utente' && feedback.ID_Utente === userId && (
                 <button onClick={() => handleDelete(feedback.ID_Feedback)}>Cancella</button>
               )}
             </li>

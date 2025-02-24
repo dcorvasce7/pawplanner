@@ -8,9 +8,7 @@ function ProfiloUtente() {
     <AuthGuard allowedRoles={['utente']}>
       <NavbarUtente />
       <div className="margin-divisor"></div>
-      <div className='popup'>
         <ProfilePopupUtente />
-      </div>
     </AuthGuard>
   );
 }

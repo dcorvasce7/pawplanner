@@ -8,19 +8,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     // Recupera i feedback in base al ruolo
     let query = 'SELECT * FROM feedback WHERE ID_Veterinario = 25';
-    let queryParams = [];
-    if (role === 'utente') {
-      const cookies = parse(req.headers.cookie || '');
-      const token = cookies.token;
-      if (!token) {
-        return res.status(401).json({ error: 'Non autenticato' });
-      }
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const idUtente = decoded.id;
-      query += ' AND ID_Utente = ?';
-      queryParams.push(idUtente);
-    }
-    db.query(query, queryParams, (err, results) => {
+    db.query(query, (err, results) => {
       if (err) {
         console.error('Errore nel recupero dei feedback: ', err);
         return res.status(500).json({ error: 'Errore interno del server' });
@@ -36,7 +24,7 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Non autenticato' });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const idUtente = decoded.id;
+    const idUtente = decoded.id; //id_utente
 
     db.query(
       'INSERT INTO feedback (Testo, Valutazione, ID_Utente, ID_Veterinario) VALUES (?, ?, ?, ?)',
@@ -51,17 +39,33 @@ export default async function handler(req, res) {
     );
   } else if (req.method === 'DELETE') {
     // Elimina un feedback
-    db.query(
-      'DELETE FROM feedback WHERE ID_Feedback = ?',
-      [id],
-      (err, results) => {
+    const cookies = parse(req.headers.cookie || '');
+    const token = cookies.token;
+    if (!token) {
+      return res.status(401).json({ error: 'Non autenticato' });
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const idUtente = decoded.id;
+
+    // Controlla se il feedback appartiene all'utente corrente
+    db.query('SELECT * FROM feedback WHERE ID_Feedback = ? AND ID_Utente = ?', [id, idUtente], (err, results) => {
+      if (err) {
+        console.error('Errore nel controllo del feedback: ', err);
+        return res.status(500).json({ error: 'Errore interno del server' });
+      }
+      if (results.length === 0) {
+        return res.status(403).json({ error: 'Non autorizzato' });
+      }
+
+      // Elimina il feedback
+      db.query('DELETE FROM feedback WHERE ID_Feedback = ?', [id], (err, results) => {
         if (err) {
           console.error('Errore nell\'eliminazione del feedback: ', err);
           return res.status(500).json({ error: 'Errore interno del server' });
         }
-        return res.status(200).json({ message: 'Feedback eliminato con successo' });
-      }
-    );
+        return res.status(200).json({ message: 'Feedback eliminato con successo', userId: idUtente });
+      });
+    });
   } else {
     res.status(405).json({ error: 'Metodo non consentito' });
   }

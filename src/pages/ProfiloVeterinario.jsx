@@ -8,9 +8,7 @@ function ProfiloVeterinario() {
     <AuthGuard allowedRoles={['veterinario']}>
       <Navbar />
       <div className="margin-divisor"></div>
-      <div className='popup'>
         <ProfilePopup />
-      </div>
     </AuthGuard>
   );
 }

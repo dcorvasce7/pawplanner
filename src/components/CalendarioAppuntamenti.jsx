@@ -6,6 +6,7 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import axios from 'axios';
 import Modal from 'react-modal';
+import { format } from 'date-fns'; // Importa la funzione format
 
 function CalendarioAppuntamenti() {
   const [events, setEvents] = useState([]);
@@ -59,13 +60,20 @@ function CalendarioAppuntamenti() {
         isOpen={isModalOpen}
         onRequestClose={closeModal}
         contentLabel="Dettaglio Evento"
+        className="custom-modal" // Aggiungi una classe CSS personalizzata
+        overlayClassName="custom-overlay" // Aggiungi una classe CSS per l'overlay
       >
-        <h2>{selectedEvent ? selectedEvent.title : 'Evento'}</h2>
-        <p><strong>Descrizione:</strong> {selectedEvent ? selectedEvent.extendedProps.description : ''}</p>
-        <p><strong>Data Inizio:</strong> {selectedEvent ? selectedEvent.start.toString() : ''}</p>
-        <p><strong>Data Fine:</strong> {selectedEvent ? selectedEvent.end.toString() : ''}</p>
-        
-        <button onClick={closeModal}>Chiudi</button>
+        <div className="modal-header">
+          <h2>{selectedEvent ? selectedEvent.title : 'Evento'}</h2>
+        </div>
+        <div className="modal-content">
+          <p><strong>Descrizione:</strong> {selectedEvent ? selectedEvent.extendedProps.description : ''}</p>
+          <p><strong>Data Inizio:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'dd/MM/yyyy HH:mm') : ''}</p>
+          <p><strong>Data Fine:</strong> {selectedEvent ? format(new Date(selectedEvent.end), 'dd/MM/yyyy HH:mm') : ''}</p>
+        </div>
+        <div className="modal-footer">
+          <button onClick={closeModal}>Chiudi</button>
+        </div>
       </Modal>
     </div>
   );
