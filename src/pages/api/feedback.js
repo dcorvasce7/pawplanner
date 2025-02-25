@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     // Recupera i feedback in base al ruolo
-    let query = 'SELECT * FROM feedback WHERE ID_Veterinario = 25';
+    let query = 'SELECT f.*, u.Nome, u.Cognome FROM feedback f JOIN utente u ON f.ID_Utente = u.ID_Utente WHERE f.ID_Veterinario = 25';
     db.query(query, (err, results) => {
       if (err) {
         console.error('Errore nel recupero dei feedback: ', err);

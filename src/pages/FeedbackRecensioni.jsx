@@ -8,12 +8,7 @@ function FeedbackRecensioni() {
     <AuthGuard allowedRoles={['veterinario']}>
       <Navbar />
       <div className="margin-divisor"></div>
-      <div className="content">
-        <div>
-          <h2>Feedback e Recensioni</h2>
           <Feedback role={'veterinario'} />
-        </div>
-      </div>
     </AuthGuard>
   );
 }

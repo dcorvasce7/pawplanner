@@ -92,7 +92,7 @@ function Emergenze({ role }) {
             onChange={(e) => setDescrizione(e.target.value)}
             placeholder="Descrizione"
           />
-          <button onClick={handleCreate}>Crea Emergenza</button>
+          <button onClick={handleCreate} disabled={!descrizione.trim()}>Crea</button>
         </div>
       )}
       
@@ -112,8 +112,8 @@ function Emergenze({ role }) {
               <p className='state'>Stato: {emergenza.Stato}</p>
               {role === 'veterinario' && (
                 <>
-                  <p>Creato da: {emergenza.Nome} {emergenza.Cognome}</p>
-                  <div className="heade">
+                  <p className='user'><strong>{emergenza.Nome} {emergenza.Cognome}</strong></p>
+                  <div className="button-group">
                   {emergenza.Stato !== 'Risolta' && (
                       <button onClick={() => handleUpdate(emergenza.ID_Emergenza, 'Risolta')}>Risolta</button>
                   )}

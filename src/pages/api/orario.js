@@ -5,7 +5,7 @@ export default function handler(req, res) {
 
   if (req.method === 'GET') {
     db.query(
-      'SELECT * FROM Orario WHERE ID_Veterinario = ? ORDER BY Giorno, Orario_Inizio',
+      'SELECT * FROM orario WHERE ID_Veterinario = ? ORDER BY Giorno, Orario_Inizio',
       [id_veterinario],
       (err, rows) => {
         if (err) {
@@ -19,7 +19,7 @@ export default function handler(req, res) {
 
     // Controllo preventivo per evitare orari duplicati per lo stesso giorno
     db.query(
-      'SELECT * FROM Orario WHERE Giorno = ? AND ID_Veterinario = ? AND (Orario_Inizio < ? AND Orario_Fine > ?)',
+      'SELECT * FROM orario WHERE Giorno = ? AND ID_Veterinario = ? AND (Orario_Inizio < ? AND Orario_Fine > ?)',
       [giorno, id_veterinario, orario_fine, orario_inizio],
       (err, rows) => {
         if (err) {
@@ -33,7 +33,7 @@ export default function handler(req, res) {
 
         // Se non esiste un conflitto, procedi con l'inserimento
         db.query(
-          'INSERT INTO Orario (Orario_Inizio, Orario_Fine, Stato, ID_Veterinario, Giorno) VALUES (?, ?, ?, ?, ?)',
+          'INSERT INTO orario (Orario_Inizio, Orario_Fine, Stato, ID_Veterinario, Giorno) VALUES (?, ?, ?, ?, ?)',
           [orario_inizio, orario_fine, stato, id_veterinario, giorno],
           (err, result) => {
             if (err) {
@@ -47,7 +47,7 @@ export default function handler(req, res) {
   } else if (req.method === 'PUT') {
     const { id_orario, orario_inizio, orario_fine, stato, giorno } = req.body;
     db.query(
-      'UPDATE Orario SET Orario_Inizio = ?, Orario_Fine = ?, Stato = ?, Giorno = ? WHERE ID_Orario = ?',
+      'UPDATE orario SET Orario_Inizio = ?, Orario_Fine = ?, Stato = ?, Giorno = ? WHERE ID_Orario = ?',
       [orario_inizio, orario_fine, stato, giorno, id_orario],
       (err) => {
         if (err) {
@@ -59,7 +59,7 @@ export default function handler(req, res) {
   } else if (req.method === 'DELETE') {
     const { id_orario } = req.body;
     db.query(
-      'DELETE FROM Orario WHERE ID_Orario = ?',
+      'DELETE FROM orario WHERE ID_Orario = ?',
       [id_orario],
       (err) => {
         if (err) {

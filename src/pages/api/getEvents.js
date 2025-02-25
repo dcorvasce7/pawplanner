@@ -1,10 +1,8 @@
-// src/pages/api/getEvents.js
-
 import db from '../../../lib/db';
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
-    // Query per unire appuntamento e orario
+    // Query per unire appuntamento, orario e utente
     const query = `
       SELECT 
         a.ID_Appuntamento,
@@ -12,9 +10,13 @@ export default function handler(req, res) {
         a.Descrizione,
         a.data,
         o.Orario_Inizio,
-        o.Orario_Fine
+        o.Orario_Fine,
+        u.ID_Utente,
+        u.Nome,
+        u.Cognome
       FROM appuntamento a
       INNER JOIN orario o ON a.ID_Orario = o.ID_Orario
+      INNER JOIN utente u ON a.ID_Utente = u.ID_Utente
     `;
 
     db.query(query, (err, results) => {
@@ -26,17 +28,16 @@ export default function handler(req, res) {
       // Mappiamo i risultati in modo da formare gli eventi per FullCalendar.
       const events = results.map(event => {
         // Converti il campo 'data' in formato ISO (YYYY-MM-DD)
-        // Supponiamo che event.data contenga una data valida; se è un oggetto Date o una stringa,
-        // possiamo usarne il metodo toISOString(). Se event.data è una stringa non standard, potresti doverla convertire.
         const isoDate = new Date(event.data).toISOString().split('T')[0]; // Estrae "YYYY-MM-DD"
 
         return {
           id: event.ID_Appuntamento,
           title: event.Motivo,
-          // Costruisci le stringhe start ed end nel formato ISO 8601
           start: isoDate + 'T' + event.Orario_Inizio, // es. "2025-02-12T08:00:00"
-          end: isoDate + 'T' + event.Orario_Fine,       // es. "2025-02-12T08:30:00"
-          description: event.Descrizione
+          end: isoDate + 'T' + event.Orario_Fine,     // es. "2025-02-12T08:30:00"
+          description: event.Descrizione,
+          nome: event.Nome,
+          cognome: event.Cognome
         };
       });
 

@@ -6,102 +6,95 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import axios from 'axios';
 import Modal from 'react-modal';
-
-// Mappa l'enum dei giorni (come "Lun", "Mar", ...) al formato richiesto da FullCalendar
-// In FullCalendar: 0 = Domenica, 1 = Lunedì, …, 6 = Sabato.
+import { format } from 'date-fns'; // Importa la funzione format
+import { it } from 'date-fns/locale';
 
 function CalendarioOrari() {
   const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);  // Per tenere traccia dell'evento selezionato
+  const [isModalOpen, setIsModalOpen] = useState(false);  // Stato per aprire/chiudere il modal
 
   useEffect(() => {
-    fetchOrariDisponibili();
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get('/api/getEventsUtente');
+        setEvents(response.data); 
+      } catch (error) {
+        console.error('Errore nel recupero eventi: ', error);
+      }
+    };
+
+    fetchEvents();
   }, []);
-  
-  const fetchOrariDisponibili = async () => {
-    try {
-      const start = '2025-02-01';
-      const end = '2025-02-28';
-      const response = await axios.get('/api/getOrariDisponibili', {
-        params: { start, end, id_veterinario: 25 }
-      });
-  
-      // Filtrare gli eventi dove la data non è nulla
-      const events = response.data
-        .filter(event => event.data)  // Filtra solo gli eventi con una data
-        .map(event => ({
-          id: `${event.ID_Orario}-${event.data}`,
-          title: event.ID_Appuntamento ? 'Prenotato' : 'Orario disponibile',
-          start: event.data ? event.data : null,
-          end: event.data ? new Date(new Date(event.data).getTime() + 30 * 60000).toISOString() : null,  // Imposta un orario di fine (30 minuti)
-          extendedProps: {
-            ID_Orario: event.ID_Orario,
-            Giorno: event.Giorno,
-            Orario_Inizio: event.Orario_Inizio,
-            Orario_Fine: event.Orario_Fine,
-            Prenotato: !!event.ID_Appuntamento
-          }
-        }));
-  
-      setEvents(events); // Impostare gli eventi filtrati
-    } catch (error) {
-      console.error('Errore nel recupero degli orari disponibili:', error);
-    }
-  };
-  
 
-  // Gestore del click sugli eventi: solo se lo Stato è "Libero"
+  // Gestore del click sugli eventi
   const handleEventClick = (info) => {
-    if (info.event.extendedProps.stato !== "Libero") {
-      return; // Se lo Stato non è "Libero", non fa nulla
+    // Impedisce l'apertura del modal per gli appuntamenti già prenotati
+    if (info.event.title === 'Occupato') {
+      return;
     }
+
+    // Imposta l'evento selezionato
     setSelectedEvent(info.event);
-    setIsModalOpen(true);
+    setIsModalOpen(true);  // Apre il modal
   };
 
+  // Funzione per chiudere il modal
   const closeModal = () => {
     setIsModalOpen(false);
   };
 
   return (
-    <div className="calendario-orari">
-      <h2>Calendario Orari Disponibili</h2>
+    <div className="calendario-appuntamenti">
+      <h2>Calendario Appuntamenti</h2>
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-        initialView="timeGridWeek"  // Vista settimanale
+        initialView="dayGridMonth"
         events={events}
-        eventClick={handleEventClick}
+        eventClick={handleEventClick}  // Aggiungi il gestore del click sugli eventi
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth',
         }}
-        eventTimeFormat={{ // Aggiungi questa configurazione per il formato orario
-            hour: '2-digit',
-            minute: '2-digit',
-            meridiem: false, // Disabilita AM/PM
-          }}
         height="70vh"
         contentHeight="auto"
+        slotLabelFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false // Formato 24 ore
+        }}
+        eventTimeFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false // Formato 24 ore
+        }}
+        eventContent={(eventInfo) => (
+          <div className={eventInfo.event.title === 'Occupato' ? 'event-occupied' : 'event-available'}>
+            <b>{eventInfo.timeText}</b>
+          </div>
+        )}
       />
 
-      {/* Modal per visualizzare i dettagli dell'orario (cliccabile solo se libero) */}
+      {/* Modal per visualizzare i dettagli dell'evento */}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeModal}
-        contentLabel="Dettaglio Orario"
+        contentLabel="Dettaglio Evento"
+        className="custom-modal" // Aggiungi una classe CSS personalizzata
+        overlayClassName="custom-overlay" // Aggiungi una classe CSS per l'overlay
       >
-        {selectedEvent && (
-          <>
-            <h2>Dettaglio Orario</h2>
-            <p><strong>Giorno:</strong> {selectedEvent.extendedProps.giorno}</p>
-            <p><strong>Orario Inizio:</strong> {selectedEvent.extendedProps.orario_inizio}</p>
-            <p><strong>Orario Fine:</strong> {selectedEvent.extendedProps.orario_fine}</p>
-            <p><strong>Stato:</strong> {selectedEvent.extendedProps.stato}</p>
-          </>
-        )}
-        <button onClick={closeModal}>Chiudi</button>
+        <div className="modal-header">
+          <h2>{selectedEvent ? selectedEvent.title : 'Evento'}</h2>
+        </div>
+        <div className="modal-content">
+          <p><strong>Descrizione:</strong> {selectedEvent ? selectedEvent.extendedProps.description : ''}</p>
+          <p><strong>Data Inizio:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'dd MMMM yyyy HH:mm', { locale: it }) : ''}</p>
+          <p><strong>Data Fine:</strong> {selectedEvent ? format(new Date(selectedEvent.end), 'dd MMMM yyyy HH:mm', { locale: it }) : ''}</p>
+        </div>
+        <div className="modal-footer">
+          <button onClick={closeModal}>Chiudi</button>
+        </div>
       </Modal>
     </div>
   );

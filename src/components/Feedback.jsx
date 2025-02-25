@@ -7,7 +7,6 @@ function Feedback({ role }) {
   const [testo, setTesto] = useState('');
   const [valutazione, setValutazione] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
@@ -36,11 +35,6 @@ function Feedback({ role }) {
   };
 
   const handleCreate = async () => {
-    if (!testo.trim()) {
-      setError('Il testo del feedback è obbligatorio.');
-      return;
-    }
-    setError('');
     try {
       await axios.post('/api/feedback', { testo, valutazione });
       setTesto('');
@@ -67,14 +61,16 @@ function Feedback({ role }) {
   };
 
   if (loading) {
-    return <div>Caricamento...</div>;
+    return <div className='loading'>Caricamento...</div>;
   }
 
   return (
-    <div>
-      <h2>Gestione Feedback</h2>
+    <div className='feedback-content'>
+      <div className="header">
+        <h2>Feedback e Recensioni</h2>
+      </div>
       {role === 'utente' && (
-        <div>
+        <div className='form-group'>
           <input
             type="text"
             value={testo}
@@ -86,22 +82,23 @@ function Feedback({ role }) {
               <option key={val} value={val}>{val}</option>
             ))}
           </select>
-          <button onClick={handleCreate}>Crea Feedback</button>
-          {error && <p style={{ color: 'red' }}>{error}</p>}
+          <button onClick={handleCreate} disabled={!testo.trim()}>Crea</button>
         </div>
       )}
-      <ul>
+      <ul className="feedback-list">
         {feedbacks.map((feedback) => {
           const dataOra = new Date(feedback.data);
           const dataFormattata = isNaN(dataOra) ? 'Data non valida' : format(dataOra, 'dd/MM/yyyy HH:mm');
           return (
-            <li key={feedback.ID_Feedback}>
-              <p>ID Utente: {feedback.ID_Utente}</p>
-              <p>Testo: {feedback.Testo}</p>
-              <p>Valutazione: {feedback.Valutazione}</p>
-              <p>Data: {dataFormattata}</p>
+            <li key={feedback.ID_Feedback} className='feedback-item'>
+              <p className='user'><strong>{feedback.Nome} {feedback.Cognome}</strong></p>
+              <p className='descripion'>Testo: {feedback.Testo}</p>
+              <p className='valutation'>Valutazione: {feedback.Valutazione}</p>
+              <p className='date'>Data: {dataFormattata}</p>
               {role === 'utente' && feedback.ID_Utente === userId && (
-                <button onClick={() => handleDelete(feedback.ID_Feedback)}>Cancella</button>
+                <div className="button-group">
+                  <button onClick={() => handleDelete(feedback.ID_Feedback)}>Cancella</button>
+                </div>
               )}
             </li>
           );

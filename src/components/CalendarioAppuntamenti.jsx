@@ -7,6 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import axios from 'axios';
 import Modal from 'react-modal';
 import { format } from 'date-fns'; // Importa la funzione format
+import { it } from 'date-fns/locale';
 
 function CalendarioAppuntamenti() {
   const [events, setEvents] = useState([]);
@@ -53,6 +54,16 @@ function CalendarioAppuntamenti() {
         }}
         height="70vh"
         contentHeight="auto"
+        slotLabelFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false // Formato 24 ore
+        }}
+        eventTimeFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false // Formato 24 ore
+        }}
       />
 
       {/* Modal per visualizzare i dettagli dell'evento */}
@@ -67,9 +78,10 @@ function CalendarioAppuntamenti() {
           <h2>{selectedEvent ? selectedEvent.title : 'Evento'}</h2>
         </div>
         <div className="modal-content">
+          <p><strong>Prenotato da:</strong> {selectedEvent ? `${selectedEvent.extendedProps.nome} ${selectedEvent.extendedProps.cognome}` : ''}</p>
           <p><strong>Descrizione:</strong> {selectedEvent ? selectedEvent.extendedProps.description : ''}</p>
-          <p><strong>Data Inizio:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'dd/MM/yyyy HH:mm') : ''}</p>
-          <p><strong>Data Fine:</strong> {selectedEvent ? format(new Date(selectedEvent.end), 'dd/MM/yyyy HH:mm') : ''}</p>
+          <p><strong>Data:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'dd MMMM yyyy', { locale: it }) : ''}</p>
+          <p><strong>Ora:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'HH:mm', { locale: it }) : ''} - {selectedEvent ? format(new Date(selectedEvent.end), 'HH:mm', { locale: it }) : ''}</p>
         </div>
         <div className="modal-footer">
           <button onClick={closeModal}>Chiudi</button>

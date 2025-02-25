@@ -5,7 +5,7 @@ import Header from '../components/Header';
 function LandingPage() {
   return (
     <>
-    <Header title="Veterinario da Chiara" subtitle="" />
+    <Header title="PawPlanner" subtitle="" />
     <div className="popup">
         <div className="popup">
           <p>Sei un utente? <Link href="/LoginUtente">Accedi</Link> <Link href="/RegistrazioneUtente">Registrati</Link></p>
