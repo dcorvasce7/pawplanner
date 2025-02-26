@@ -39,7 +39,7 @@ function RegistrazioneUtente() {
 
   return (
     <>
-      <Header title="Veterinario da Chiara" subtitle="" />
+      <Header title="PawPlanner" subtitle="" />
       <div className='registrationcontent'>
         <FormComponent 
           title="Registrazione Utente" 

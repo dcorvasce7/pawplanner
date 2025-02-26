@@ -34,7 +34,7 @@ function LoginUtente() {
 
   return (
     <>
-      <Header title="Veterinario da Chiara" subtitle="" />
+      <Header title="PawPlanner" subtitle="" />
       <div className='logincontent'>
         <FormComponent 
           title="Login Utente" 

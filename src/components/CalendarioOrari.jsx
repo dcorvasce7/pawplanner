@@ -6,26 +6,51 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import axios from 'axios';
 import Modal from 'react-modal';
-import { format } from 'date-fns'; // Importa la funzione format
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 import { it } from 'date-fns/locale';
 
 function CalendarioOrari() {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);  // Per tenere traccia dell'evento selezionato
   const [isModalOpen, setIsModalOpen] = useState(false);  // Stato per aprire/chiudere il modal
+  const [description, setDescription] = useState(''); // Stato per la descrizione
+  const [userId, setUserId] = useState(null); // Stato per l'ID dell'utente
+
+  // Definisci localStartDate e localEndDate nel contesto del modal
+  const timeZone = 'Europe/Rome';
+  const localStartDate = selectedEvent ? toZonedTime(new Date(selectedEvent.start), 'Europe/Rome') : null;
+  const localEndDate = selectedEvent ? toZonedTime(new Date(selectedEvent.end), 'Europe/Rome') : null;
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await axios.get('/api/getEventsUtente');
-        setEvents(response.data); 
-      } catch (error) {
-        console.error('Errore nel recupero eventi: ', error);
-      }
-    };
-
-    fetchEvents();
+    fetchUserId();
   }, []);
+
+  useEffect(() => {
+    if (userId !== null) {
+      fetchEvents();
+    }
+  }, [userId]);
+
+  const fetchUserId = async () => {
+    try {
+      const response = await axios.get('/api/session');
+      setUserId(response.data.user.id);
+    } catch (error) {
+      console.error('Errore nel recupero dell\'ID utente:', error);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get('/api/getEventsUtente', {
+        params: { selectedDate: format(new Date(), 'yyyy-MM-dd') }
+      });
+      setEvents(response.data); 
+    } catch (error) {
+      console.error('Errore nel recupero eventi: ', error);
+    }
+  };
 
   // Gestore del click sugli eventi
   const handleEventClick = (info) => {
@@ -42,6 +67,29 @@ function CalendarioOrari() {
   // Funzione per chiudere il modal
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+
+  // Funzione per gestire l'invio del form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const newAppointment = {
+      ID_Orario: selectedEvent.id,
+      Descrizione: description,
+      ID_Utente: userId, // Utilizza l'ID dell'utente corrente
+      ID_Veterinario: 25, // Sostituisci con l'ID del veterinario corrente
+      data: format(localStartDate, 'yyyy-MM-dd HH:mm:ss', { timeZone }), // Converti la data nel formato corretto
+      Motivo: 'Visita'
+    };
+
+    try {
+      await axios.post('/api/createAppointment', newAppointment);
+      setIsModalOpen(false);
+      setDescription('');
+      // Ricarica gli eventi dopo la creazione dell'appuntamento
+      fetchEvents();
+    } catch (error) {
+      console.error('Errore nella creazione dell\'appuntamento:', error);
+    }
   };
 
   return (
@@ -88,12 +136,25 @@ function CalendarioOrari() {
           <h2>{selectedEvent ? selectedEvent.title : 'Evento'}</h2>
         </div>
         <div className="modal-content">
-          <p><strong>Descrizione:</strong> {selectedEvent ? selectedEvent.extendedProps.description : ''}</p>
-          <p><strong>Data Inizio:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'dd MMMM yyyy HH:mm', { locale: it }) : ''}</p>
-          <p><strong>Data Fine:</strong> {selectedEvent ? format(new Date(selectedEvent.end), 'dd MMMM yyyy HH:mm', { locale: it }) : ''}</p>
-        </div>
-        <div className="modal-footer">
-          <button onClick={closeModal}>Chiudi</button>
+          <form onSubmit={handleSubmit}>
+            <div>
+              <label>Descrizione:</label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <p><strong>Data Inizio:</strong> {localStartDate ? format(localStartDate, 'dd MMMM yyyy HH:mm', { locale: it }) : ''}</p>
+              <p><strong>Data Fine:</strong> {localEndDate ? format(localEndDate, 'dd MMMM yyyy HH:mm', { locale: it }) : ''}</p>
+            </div>
+            <div className="modal-footer">
+              <button type="submit">Prenota</button>
+              <button type="button" onClick={closeModal}>Chiudi</button>
+            </div>
+          </form>
         </div>
       </Modal>
     </div>

@@ -1,75 +1,127 @@
 import db from '../../../lib/db';
+import { toZonedTime, format } from 'date-fns-tz';
+import { it } from 'date-fns/locale';
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
-    // Query per unire appuntamento e orario
-    const query = `
+    const { selectedDate } = req.query;
+
+    if (!selectedDate) {
+      return res.status(400).json({ error: "selectedDate è richiesto" });
+    }
+
+    // Query per ottenere le fasce orarie
+    const queryOrari = `
       SELECT 
-        o.ID_Orario,
-        o.Orario_Inizio,
-        o.Orario_Fine,
-        o.Stato,
-        o.Giorno,
-        a.ID_Appuntamento,
-        a.Motivo,
-        a.Descrizione,
-        a.ID_Utente,
-        a.ID_Veterinario,
-        a.data
-      FROM orario o
-      LEFT JOIN appuntamento a ON o.ID_Orario = a.ID_Orario
+        ID_Orario,
+        Orario_Inizio,
+        Orario_Fine,
+        Stato,
+        Giorno,
+        ID_Veterinario
+      FROM orario
     `;
 
-    db.query(query, (err, results) => {
-      if (err) {
-        console.error("Errore nel recupero degli eventi:", err);
-        return res.status(500).json({ error: "Errore interno del server" });
-      }
+    // Query per ottenere gli appuntamenti
+    const queryAppuntamenti = `
+      SELECT 
+        ID_Appuntamento,
+        ID_Orario,
+        Motivo,
+        Descrizione,
+        ID_Utente,
+        ID_Veterinario,
+        data
+      FROM appuntamento
+    `;
 
+    // Eseguiamo entrambe le query in parallelo
+    Promise.all([
+      new Promise((resolve, reject) => {
+        db.query(queryOrari, (err, results) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(results);
+        });
+      }),
+      new Promise((resolve, reject) => {
+        db.query(queryAppuntamenti, (err, results) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(results);
+        });
+      })
+    ])
+    .then(([orari, appuntamenti]) => {
       // Log dei risultati originali
-      console.log("Risultati originali:", results);
+      console.log("Orari:", orari);
+      console.log("Appuntamenti:", appuntamenti);
 
-      // Mappiamo i risultati in modo da formare gli eventi per FullCalendar.
-      const events = results.map(event => {
-        // Controlla se i valori di data sono validi
-        const data = event.data ? new Date(event.data) : null;
-        const giorno = event.Giorno ? event.Giorno : null;
+      // Fuso orario locale (Italia)
+      const timeZone = 'Europe/Rome';
 
-        // Converti il campo 'data' in formato ISO (YYYY-MM-DD)
-        const isoDate = data && !isNaN(data) ? data.toISOString().split('T')[0] : null;
+      // Mappiamo gli appuntamenti in modo da formare gli eventi per FullCalendar.
+      const eventiAppuntamenti = appuntamenti.map(appuntamento => {
+        const data = toZonedTime(new Date(appuntamento.data), timeZone);
+        const isoDate = format(data, 'yyyy-MM-dd', { timeZone });
+        const startDate = toZonedTime(new Date(isoDate + 'T' + orari.find(o => o.ID_Orario === appuntamento.ID_Orario).Orario_Inizio), timeZone);
+        const endDate = toZonedTime(new Date(isoDate + 'T' + orari.find(o => o.ID_Orario === appuntamento.ID_Orario).Orario_Fine), timeZone);
 
-        // Aggiusta il fuso orario per evitare problemi di data
-        const startDate = isoDate ? new Date(isoDate + 'T' + event.Orario_Inizio) : null;
-        const endDate = isoDate ? new Date(isoDate + 'T' + event.Orario_Fine) : null;
-
-        // Se è un appuntamento
-        if (event.ID_Appuntamento) {
-          return {
-            id: event.ID_Appuntamento,
-            title: 'Occupato',
-            start: startDate ? startDate.toISOString() : null,
-            end: endDate ? endDate.toISOString() : null,
-            description: event.Descrizione,
-            stato: event.Stato
-          };
-        } else {
-          // Se è un orario prenotabile
-          return {
-            id: event.ID_Orario,
-            title: 'Orario Prenotabile',
-            daysOfWeek: [convertDayToNumber(giorno)], // Converti il giorno in numero
-            startTime: event.Orario_Inizio,
-            endTime: event.Orario_Fine,
-            description: 'Orario disponibile per prenotazione',
-            stato: event.Stato
-          };
-        }
+        return {
+          id: appuntamento.ID_Appuntamento,
+          title: 'Occupato',
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          description: appuntamento.Descrizione,
+          stato: orari.find(o => o.ID_Orario === appuntamento.ID_Orario).Stato
+        };
       });
 
-      // Log degli eventi mappati
-      console.log("Eventi mappati:", events);
+      console.log("Selected Date:", selectedDate);
+console.log("Appuntamenti filtrati:", appuntamenti.filter(app => format(toZonedTime(new Date(app.data), timeZone), 'yyyy-MM-dd') === selectedDate));
 
-      return res.status(200).json(events);
+      // Filtriamo le fasce orarie per rimuovere quelle che hanno appuntamenti nello stesso giorno
+      const eventiOrari = orari.filter(orario => {
+        return !appuntamenti
+          .filter(appuntamento => format(toZonedTime(new Date(appuntamento.data), timeZone), 'yyyy-MM-dd') === selectedDate) // Filtra solo appuntamenti per la data richiesta
+          .some(appuntamento => {
+            const giornoAppuntamento = format(toZonedTime(new Date(appuntamento.data), timeZone), 'EEEE', { locale: it });
+            const giornoOrario = format(toZonedTime(new Date(selectedDate), timeZone), 'EEEE', { locale: it });
+      
+            console.log("Controllo eliminazione:", {
+              ID_Orario: appuntamento.ID_Orario,
+              dataAppuntamento: format(toZonedTime(new Date(appuntamento.data), timeZone), 'yyyy-MM-dd'),
+              giornoAppuntamento,
+              giornoOrario
+            });
+      
+            return appuntamento.ID_Orario === orario.ID_Orario && giornoAppuntamento === giornoOrario;
+          });
+      }).map(orario => {
+        return {
+          id: orario.ID_Orario,
+          title: 'Orario Prenotabile',
+          daysOfWeek: [convertDayToNumber(orario.Giorno)], // Converti il giorno in numero
+          startTime: orario.Orario_Inizio,
+          endTime: orario.Orario_Fine,
+          description: 'Orario disponibile per prenotazione',
+          stato: orario.Stato
+        };
+      });
+
+      // Combiniamo gli eventi degli appuntamenti e delle fasce orarie
+      const eventi = [...eventiOrari, ...eventiAppuntamenti];
+
+      // Log degli eventi mappati
+      console.log("Eventi mappati:", eventi);
+      
+      return res.status(200).json(eventi);
+    })
+    .catch(err => {
+      console.error("Errore nel recupero degli eventi:", err);
+      return res.status(500).json({ error: "Errore interno del server" });
     });
   } else {
     return res.status(405).json({ error: "Metodo non consentito" });
