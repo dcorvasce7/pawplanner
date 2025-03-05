@@ -8,10 +8,10 @@ function LandingPage() {
     <Header title="PawPlanner" subtitle="" />
     <div className="popup">
         <div className="popup">
-          <p>Sei un utente? <Link href="/LoginUtente">Accedi</Link> <Link href="/RegistrazioneUtente">Registrati</Link></p>
+          <p>Sei un utente? <Link href="/Login?tipo=utente">Accedi</Link> <Link href="/Registrazione?tipo=utente">Registrati</Link></p>
         </div>
         <div className="popup">
-          <p>Sei un veterinario? <Link href="/LoginVeterinario">Accedi</Link> <Link href="/RegistrazioneVeterinario">Registrati</Link></p>
+          <p>Sei un veterinario? <Link href="/Login?tipo=veterinario">Accedi</Link> <Link href="/Registrazione?tipo=veterinario">Registrati</Link></p>
         </div>
       </div>
       </>

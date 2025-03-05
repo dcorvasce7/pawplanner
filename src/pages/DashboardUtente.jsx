@@ -1,13 +1,13 @@
 import React from 'react';
-import NavbarUtente from '../components/NavbarUtente';
 import CalendarioOrari from '../components/CalendarioOrari';
 import AuthGuard from '../components/AuthGuard';
 import Emergenze from '../components/Emergenze';
+import Navbar from '../components/Navbar';
 
 function DashboardUtente() {
   return (
     <AuthGuard allowedRoles={['utente']}>
-      <NavbarUtente />
+      <Navbar tipoUtente="utente" />
       <div className="margin-divisor"></div>
       <div className="dashboard-content">
           <CalendarioOrari /> 

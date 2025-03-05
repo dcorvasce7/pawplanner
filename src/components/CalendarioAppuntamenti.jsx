@@ -79,7 +79,6 @@ function CalendarioAppuntamenti() {
         </div>
         <div className="modal-content">
           <p><strong>Prenotato da:</strong> {selectedEvent ? `${selectedEvent.extendedProps.nome} ${selectedEvent.extendedProps.cognome}` : ''}</p>
-          <p><strong>Descrizione:</strong> {selectedEvent ? selectedEvent.extendedProps.description : ''}</p>
           <p><strong>Data:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'dd MMMM yyyy', { locale: it }) : ''}</p>
           <p><strong>Ora:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'HH:mm', { locale: it }) : ''} - {selectedEvent ? format(new Date(selectedEvent.end), 'HH:mm', { locale: it }) : ''}</p>
         </div>

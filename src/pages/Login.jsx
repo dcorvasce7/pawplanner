@@ -4,27 +4,32 @@ import axios from 'axios';
 import Header from '../components/Header';
 import FormComponent from '../components/FormComponent';
 
-function LoginVeterinario() {
+function Login() {
   const [message, setMessage] = useState('');
   const router = useRouter();
+  const { query } = router;
+  const tipo = query.tipo; // Default a 'utente' se non è specificato
+
+  const isVeterinario = tipo === 'veterinario';
+  
   const inputs = [
-    { name: 'email', type: 'email', label: 'Email', required: true, autoComplete: 'email'},
-    { name: 'password', type: 'password', label: 'Password', required: true, autoComplete: 'current-password'}
+    { name: 'email', type: 'email', label: 'Email', required: true, autoComplete: 'email' },
+    { name: 'password', type: 'password', label: 'Password', required: true, autoComplete: 'current-password' }
   ];
+  
   const handleFormSubmit = async (e, formData) => {
     e.preventDefault();
-
+    
     try {
-      const response = await axios.post('/api/login_veterinario', formData);
+      const response = await axios.post(`/api/login_${tipo}`, formData);
 
       if (response.status === 200) {
         console.log('Login successful:', response.data);
         setMessage('Login riuscito');
         setTimeout(() => {
-          router.push('/DashboardVeterinario'); // Reindirizza alla pagina di dashboard
+          router.push(isVeterinario ? '/DashboardVeterinario' : '/DashboardUtente');
         }, 2000);
       } else {
-        // Se ci sono errori nel backend
         setMessage(response.data.error || 'Errore nel login');
       }
     } catch (error) {
@@ -37,16 +42,16 @@ function LoginVeterinario() {
       <Header title="PawPlanner" subtitle="" />
       <div className='logincontent'>
         <FormComponent 
-          title="Login Veterinario" 
+          title={`Login ${isVeterinario ? 'Veterinario' : 'Utente'}`} 
           inputs={inputs} 
           buttonText="Accedi" 
           onSubmit={handleFormSubmit} 
           className="login-form" 
         />
-        {message && <div className="message">{message}</div>} {/* Mostra il messaggio sotto il form */}
+        {message && <div className="message">{message}</div>}
       </div>
     </>
   );
 }
 
-export default LoginVeterinario;
+export default Login;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import FormComponent from './FormComponent'; // Importiamo il FormComponent
 
-function ProfilePopup() {
+function ProfilePopup({ role }) {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     Nome: '',
@@ -18,7 +18,6 @@ function ProfilePopup() {
     specializzazione: '',
     num_iscrizione_albo: ''
   });
-
   const [isEditable, setIsEditable] = useState(false);
   const [originalData, setOriginalData] = useState(null);
 
@@ -30,18 +29,19 @@ function ProfilePopup() {
         console.log(sessionResponse.data); // Aggiungi questo log
         
         if (sessionResponse.data.user) {
-          const idVeterinario = sessionResponse.data.user.id;
+          const userId = sessionResponse.data.user.id;
 
-          if (idVeterinario) {
-            // Usa l'ID per fare la richiesta alla tua API per ottenere i dati del veterinario
-            const response = await axios.get(`/api/veterinario?id=${idVeterinario}`);
+          if (userId) {
+            // Usa l'ID per fare la richiesta alla tua API per ottenere i dati dell'utente o del veterinario
+            const endpoint = role === 'veterinario' ? `/api/veterinario?id=${userId}` : `/api/utente?id=${userId}`;
+            const response = await axios.get(endpoint);
             if (response.data) {
               setUser(response.data);
               setFormData({
                 Nome: response.data.Nome || '',
                 Cognome: response.data.Cognome || '',
-                email: response.data.email || '',
-                telefono: response.data.telefono || '',
+                email: response.data.email || response.data.Email || '',
+                telefono: response.data.telefono || response.data.Numero_di_telefono || '',
                 ragione_sociale: response.data.ragione_sociale || '',
                 partita_iva: response.data.partita_iva || '',
                 codice_fiscale: response.data.codice_fiscale || '',
@@ -54,18 +54,18 @@ function ProfilePopup() {
               setOriginalData(response.data);
             }
           } else {
-            console.error('ID Veterinario non trovato nella sessione.');
+            console.error('ID utente non trovato nella sessione.');
           }
         } else {
           console.error('Nessun dato utente trovato');
         }
       } catch (error) {
-        console.error('Errore nel recupero dei dati del veterinario:', error);
+        console.error('Errore nel recupero dei dati dell\'utente:', error);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [role]);
 
   const handleSubmit = async (e, formData) => {
     e.preventDefault();
@@ -82,7 +82,8 @@ function ProfilePopup() {
     }
 
     try {
-      const response = await axios.put(`/api/veterinario?id=${user.ID_Veterinario}`, formData);
+      const endpoint = role === 'veterinario' ? `/api/veterinario?id=${user.ID_Veterinario}` : `/api/utente?id=${user.ID_Utente}`;
+      const response = await axios.put(endpoint, formData);
       if (response.status === 200) {
         alert('Dati aggiornati con successo');
         setOriginalData(formData);
@@ -113,7 +114,7 @@ function ProfilePopup() {
     'Comportamento animale'
   ];
 
-  const inputs = [
+  const inputs = role === 'veterinario' ? [
     { id: 'Nome', label: 'Nome', type: 'text', name: 'Nome', value: formData.Nome, disabled: true },
     { id: 'Cognome', label: 'Cognome', type: 'text', name: 'Cognome', value: formData.Cognome, disabled: true },
     { id: 'email', label: 'Email', type: 'email', name: 'email', value: formData.email, disabled: !isEditable },
@@ -126,6 +127,11 @@ function ProfilePopup() {
     { id: 'citta', label: 'Città', type: 'text', name: 'citta', value: formData.citta, disabled: !isEditable },
     { id: 'specializzazione', label: 'Specializzazione', type: 'select', name: 'specializzazione', value: formData.specializzazione, disabled: !isEditable, options: specializzazioni },
     { id: 'num_iscrizione_albo', label: 'Numero Iscrizione Albo', type: 'text', name: 'num_iscrizione_albo', value: formData.num_iscrizione_albo, disabled: true }
+  ] : [
+    { id: 'Nome', label: 'Nome', type: 'text', name: 'Nome', value: formData.Nome, disabled: true },
+    { id: 'Cognome', label: 'Cognome', type: 'text', name: 'Cognome', value: formData.Cognome, disabled: true },
+    { id: 'email', label: 'Email', type: 'email', name: 'email', value: formData.email, disabled: !isEditable },
+    { id: 'telefono', label: 'Telefono', type: 'text', name: 'telefono', value: formData.telefono, disabled: !isEditable }
   ];
 
   return (

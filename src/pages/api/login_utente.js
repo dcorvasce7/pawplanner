@@ -22,7 +22,6 @@ export default async function handler(req, res) {
         }
 
         const utente = results[0];
-        console.log('Risultato della query:', utente);
 
         // Confronta la password inserita con quella cifrata nel database
         const isMatch = await bcrypt.compare(password, utente.password);

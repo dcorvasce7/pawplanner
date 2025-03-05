@@ -3,7 +3,7 @@ import { serialize } from 'cookie';
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     // Rimuovi il cookie di sessione
-    const cookie = serialize('session', '', {
+    const cookie = serialize('token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',

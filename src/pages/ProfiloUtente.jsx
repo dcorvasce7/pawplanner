@@ -1,14 +1,14 @@
 import React from 'react';
-import ProfilePopupUtente from '../components/ProfilePopupUtente';
-import NavbarUtente from '../components/NavbarUtente';
+import ProfilePopup from '../components/ProfilePopup';
+import Navbar from '../components/Navbar';
 import AuthGuard from '../components/AuthGuard';
 
 function ProfiloUtente() {
   return (
     <AuthGuard allowedRoles={['utente']}>
-      <NavbarUtente />
+      <Navbar tipoUtente="utente" />
       <div className="margin-divisor"></div>
-        <ProfilePopupUtente />
+        <ProfilePopup role="utente" />
     </AuthGuard>
   );
 }

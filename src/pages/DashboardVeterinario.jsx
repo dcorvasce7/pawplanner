@@ -8,7 +8,7 @@ import Emergenze from '../components/Emergenze';
 function DashboardVeterinario() {
   return (
     <AuthGuard allowedRoles={['veterinario']}>
-      <Navbar />
+      <Navbar tipoUtente="veterinario" />
       <div className="margin-divisor"></div>
       <div className="dashboard-content">
           <CalendarioAppuntamenti /> 

@@ -6,7 +6,7 @@ import Feedback from '../components/Feedback';
 function FeedbackRecensioni() {
   return (
     <AuthGuard allowedRoles={['veterinario']}>
-      <Navbar />
+      <Navbar tipoUtente="veterinario" />
       <div className="margin-divisor"></div>
           <Feedback role={'veterinario'} />
     </AuthGuard>

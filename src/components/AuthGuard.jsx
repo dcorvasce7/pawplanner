@@ -14,7 +14,7 @@ const AuthGuard = ({ children, allowedRoles = [] }) => {
         const response = await axios.get('/api/session', { validateStatus: false });
         if (response.status === 200 && response.data.user) {
           setIsAuthenticated(true);
-          setUserRole(response.data.user.role);  // Supponiamo che `role` sia parte della risposta
+          setUserRole(response.data.user.role);
         } else if (response.status === 401) {
           router.push('/');
         }
@@ -29,11 +29,7 @@ const AuthGuard = ({ children, allowedRoles = [] }) => {
   }, [router]);
 
   if (loading) {
-    return null;
-  }
-
-  if (!isAuthenticated) {
-    return null;
+    return <div>Loading...</div>;
   }
 
   // Controlla se l'utente ha il ruolo giusto per accedere alla pagina

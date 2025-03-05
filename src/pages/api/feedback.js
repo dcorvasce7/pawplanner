@@ -3,11 +3,25 @@ import { parse } from 'cookie';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
-  const { id, role } = req.query;
+  // Estraiamo subito l'ID utente dai cookie per averlo disponibile per tutti i metodi
+  const cookies = parse(req.headers.cookie || '');
+  const token = cookies.token;
+  let idUtente;
+  
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      idUtente = decoded.id;
+    } catch (error) {
+      return res.status(401).json({ error: 'Token non valido' });
+    }
+  }
+
+  const { id } = req.query;
 
   if (req.method === 'GET') {
-    // Recupera i feedback in base al ruolo
-    let query = 'SELECT f.*, u.Nome, u.Cognome FROM feedback f JOIN utente u ON f.ID_Utente = u.ID_Utente WHERE f.ID_Veterinario = 25';
+    // Recupera i feedback
+    let query = 'SELECT f.*, u.Nome, u.Cognome, v.Nome AS NomeVet, v.Cognome AS CognomeVet FROM feedback f JOIN utente u ON f.ID_Utente = u.ID_Utente JOIN veterinario v ON f.ID_Veterinario = v.ID_Veterinario ORDER BY data DESC';
     db.query(query, (err, results) => {
       if (err) {
         console.error('Errore nel recupero dei feedback: ', err);
@@ -17,18 +31,11 @@ export default async function handler(req, res) {
     });
   } else if (req.method === 'POST') {
     // Crea un nuovo feedback
-    const { testo, valutazione } = req.body;
-    const cookies = parse(req.headers.cookie || '');
-    const token = cookies.token;
-    if (!token) {
-      return res.status(401).json({ error: 'Non autenticato' });
-    }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const idUtente = decoded.id; //id_utente
+    const { testo, valutazione, idVeterinario } = req.body;
 
+    let query = 'INSERT INTO feedback (Testo, Valutazione, ID_Utente, ID_Veterinario) VALUES (?, ?, ?, ?)';
     db.query(
-      'INSERT INTO feedback (Testo, Valutazione, ID_Utente, ID_Veterinario) VALUES (?, ?, ?, ?)',
-      [testo, valutazione, idUtente, 25],
+      query, [testo, valutazione, idUtente, idVeterinario],
       (err, results) => {
         if (err) {
           console.error('Errore nella creazione del feedback: ', err);

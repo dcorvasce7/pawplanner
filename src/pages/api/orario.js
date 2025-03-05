@@ -11,13 +11,14 @@ export default function handler(req, res) {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
-        res.status(200).json(rows);
+        return res.status(200).json(rows);
       }
-    );
+    ); 
   } else if (req.method === 'POST') {
-    const { orario_inizio, orario_fine, stato, id_veterinario, giorno } = req.body;
+    const { orario_inizio, orario_fine, giorno, id_veterinario} = req.body;
 
     // Controllo preventivo per evitare orari duplicati per lo stesso giorno
+    //da capire cosa fa
     db.query(
       'SELECT * FROM orario WHERE Giorno = ? AND ID_Veterinario = ? AND (Orario_Inizio < ? AND Orario_Fine > ?)',
       [giorno, id_veterinario, orario_fine, orario_inizio],
@@ -33,27 +34,15 @@ export default function handler(req, res) {
 
         // Se non esiste un conflitto, procedi con l'inserimento
         db.query(
-          'INSERT INTO orario (Orario_Inizio, Orario_Fine, Stato, ID_Veterinario, Giorno) VALUES (?, ?, ?, ?, ?)',
-          [orario_inizio, orario_fine, stato, id_veterinario, giorno],
+          'INSERT INTO orario (Orario_Inizio, Orario_Fine, ID_Veterinario, Giorno) VALUES (?, ?, ?, ?)',
+          [orario_inizio, orario_fine, id_veterinario, giorno],
           (err, result) => {
             if (err) {
               return res.status(500).json({ error: err.message });
             }
-            res.status(201).json({ id: result.insertId, message: 'Orario aggiunto con successo' });
+            return res.status(201).json({ id: result.insertId, message: 'Orario aggiunto con successo' });
           }
         );
-      }
-    );
-  } else if (req.method === 'PUT') {
-    const { id_orario, orario_inizio, orario_fine, stato, giorno } = req.body;
-    db.query(
-      'UPDATE orario SET Orario_Inizio = ?, Orario_Fine = ?, Stato = ?, Giorno = ? WHERE ID_Orario = ?',
-      [orario_inizio, orario_fine, stato, giorno, id_orario],
-      (err) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        }
-        res.status(200).json({ message: 'Orario aggiornato con successo' });
       }
     );
   } else if (req.method === 'DELETE') {
@@ -65,10 +54,10 @@ export default function handler(req, res) {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
-        res.status(200).json({ message: 'Orario eliminato con successo' });
+        return res.status(200).json({ message: 'Orario eliminato con successo' });
       }
     );
   } else {
-    res.status(405).json({ message: 'Metodo non consentito' });
+    return res.status(405).json({ message: 'Metodo non consentito' });
   }
 }

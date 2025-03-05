@@ -428,6 +428,17 @@ h1{
   text-align: center;
 }
 
+.fc-daygrid-body {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr); /* 2 colonne */
+  gap: 5px; /* Spazio tra gli eventi */
+}
+
+.fc-daygrid-event {
+  width: 100%; /* Occupa tutto lo spazio della colonna */
+}
+
+
 .modal-content{
   text-align: left;}
 
@@ -532,16 +543,49 @@ h1{
   max-width: 600px; /* Larghezza massima */
   overflow: auto; /* Gestisce l'overflow */
   background-color: white; /* Colore di sfondo */
-  padding: 20px 10px; /* Padding interno */
+  padding: 20px 15px; /* Padding interno */
   border-radius: 12px; /* Raggio dei bordi */
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2); /* Ombra della modale */
   z-index: 999; /* Sopra l'overlay */
   display: grid; /* Uso di grid se necessario */
   grid-template-rows: repeat(auto-fit, 1fr); /* Imposta righe del grid */
   gap: 15px; /* Spaziatura tra gli elementi */
-  justify-content: center; /* Centro del contenuto */
-  text-align: center; /* Allineamento del testo */
-  align-items: center; /* Allineamento verticale degli elementi */
+}
+
+.custom-modal .modal-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.custom-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+}
+  
+.custom-modal .modal-content .form-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  width: 80%;
+}
+
+
+.custom-modal .modal-content .info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.custom-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  width: 100%;
+  margin-top: 20px; /* Distanza tra il form/infos e il footer */
+  padding-top: 10px;
 }
 
 
@@ -625,7 +669,7 @@ h1{
   }
 }
 
-@media screen and (max-width: 425px){
+@media screen and (max-width: 475px){
   h2 {
     font-size: 1.3rem;
   }
@@ -678,12 +722,36 @@ h1{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 15px;
+  gap: 10px;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   padding: 10px 0px;
 }
+
+.feedback-content .form-group .val{
+  width: auto;
+}
+
+.feedback-content .form-group .vet {
+  width: auto;
+}
+
+@media screen and (max-width: 635px) {
+  .feedback-content .form-group {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr auto;
+  }
+}
+
+
+@media screen and (max-width: 425px) {
+  .feedback-content{
+    width: 80%;
+  }
+}
+
 
 .feedback-content .form-group button:disabled{
   pointer-events: none;
@@ -703,15 +771,16 @@ h1{
 
 .feedback-content .feedback-item {
   display: grid;
-  grid-template-columns: 2.5fr 0.5fr;
-  grid-template-rows: auto auto auto auto;
-  grid-column-gap: 7px;
-  grid-row-gap: 7px;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto auto auto auto;
+  grid-column-gap: 4px;
+  grid-row-gap: 4px;
   text-align: start;
   background-color: rgba(211, 211, 211, 0.399);
   padding: 10px;
   border-radius: 6px;
   position: relative;
+  overflow: auto;
 }
 
 .feedback-content .feedback-item .user {
@@ -719,17 +788,21 @@ h1{
   font-weight: bold;
 }
 
-.feedback-content .feedback-item .description { grid-area: 2 / 1 / 3 / 2; }
+.feedback-content .feedback-item .description { grid-area: 2 / 1 / 3 / 3; }
 .feedback-content .feedback-item .valutation { grid-area: 3 / 1 / 4 / 2; }
+.feedback-content .feedback-item .veterinario {
+  grid-area: 5 / 3 / 6 / 3;
+  text-align: right;
+}
 .feedback-content .feedback-item .date { 
-  grid-area: 4 / 1 / 5 / 3;  
+  grid-area: 4 / 3 / 4 / 3; 
   text-align: right;
 }
 
 .feedback-content .feedback-item .button-group {
   display: flex;
   flex-direction: column;
-  grid-area: 2 / 2 / 3 / 3; 
+  grid-area: 1 / 3 / 1 / 3; 
   align-items: flex-end;
   gap: 10px;
 }
@@ -743,4 +816,115 @@ h1{
   justify-content: center;
   align-items: center;
   height: 100vh;
+}
+
+/*Gestione Orario*/
+.time-popup{
+  display: grid;
+  border-radius: 12px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2);  border-radius: 12px;
+  padding: 10px;
+  margin: 30px;
+  grid-template-rows: repeat(auto, minmax(100px, 1fr));
+  gap: 15px;
+  justify-self: center;
+  text-align: center;
+  align-items: center;
+  width: 70%;
+}
+
+.time-popup .header{
+  display: flex;
+  justify-content: flex-start;
+  align-content: center;
+  place-items: center;
+  padding: 1rem;
+  margin: 0%;
+  background-color: rgba(211, 211, 211, 0.399);
+  border-radius: 6px;
+}
+
+.time-popup .header svg{
+  fill: black;
+  margin-left: auto;
+}
+
+.time-popup .time-form{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  column-gap: 15px;
+  text-align: center;
+  padding: 30px;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.time-popup .time-form .form-group{
+  padding-bottom: 0px;
+}
+
+.time-popup .time-form .form-group select{
+  height: 100%;
+}
+
+.time-popup .time-form .time-input{
+  height: 100%;
+  width: 100%;
+}
+
+
+.time-popup .button-group{
+  display: flex;
+  justify-content: flex-end;
+  align-content: center;
+  place-items: center;
+  padding: 1rem;
+  background-color: rgba(211, 211, 211, 0.399);
+  border-radius: 6px;
+}
+
+.time-popup .button-group button{
+  width: auto;
+  padding: 0.4rem;
+  height: auto;
+}
+
+.time-popup .button-group button:disabled{
+  pointer-events: none; /* Impedisce il clic */
+  opacity: 0.6; /* Lo rende visivamente più chiaro */
+  cursor: not-allowed; /* Cambia il cursore */
+}
+
+.time-popup .time-list{
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.time-popup .time-item {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  grid-column-gap: 4px;
+  grid-row-gap: 4px;
+  background-color: rgba(211, 211, 211, 0.399);
+  padding: 10px;
+  border-radius: 6px;
+  position: relative;
+  overflow: auto;
+  text-align: start;
+}
+
+.time-popup .time-item button{
+  grid-column: 2;
+  grid-row: 1;
+  height: 1.5rem;
+  width: fit-content;
+  justify-self: flex-end ;
+}
+
+.time-popup .time-item .time-text{
+  grid-row: 2;
+  grid-column: 1 / span 2;
 }

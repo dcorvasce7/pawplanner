@@ -34,7 +34,6 @@ export default async function handler(req, res) {
         const token = jwt.sign(
           { id: veterinario.ID_Veterinario, email: veterinario.email, role: 'veterinario' },  // Dati utili nel token
           process.env.JWT_SECRET,  // Una chiave segreta definita nel .env
-          { expiresIn: '1h' }  // Il token scade dopo 1 ora
         );
 
         // Imposta il cookie con il token JWT

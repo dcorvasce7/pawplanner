@@ -2,36 +2,37 @@ import db from '../../../lib/db';
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
-    const { selectedDate } = req.query;
-    console.log('Data selezionata:', selectedDate);
 
-    if (!selectedDate) {
-      return res.status(400).json({ error: "selectedDate è richiesto" });
-    }
+    const today = new Date().toISOString().split('T')[0]; // Formatta in 'YYYY-MM-DD'
 
     // Query per ottenere le fasce orarie
     const queryOrari = `
-      SELECT 
-        ID_Orario,
-        Orario_Inizio,
-        Orario_Fine,
-        Stato,
-        Giorno,
-        ID_Veterinario
-      FROM orario
+    SELECT 
+    o.ID_Orario,
+    o.Orario_Inizio,
+    o.Orario_Fine,
+    o.Giorno,
+    o.ID_Veterinario,
+    v.Nome,
+    v.Cognome
+    FROM orario o
+    JOIN veterinario v ON o.ID_Veterinario = v.ID_Veterinario;
     `;
 
     // Query per ottenere gli appuntamenti
     const queryAppuntamenti = `
       SELECT 
-        ID_Appuntamento,
-        ID_Orario,
-        Motivo,
-        Descrizione,
-        ID_Utente,
-        ID_Veterinario,
-        data
-      FROM appuntamento
+        a.ID_Appuntamento,
+        a.ID_Orario,
+        a.Descrizione,
+        a.ID_Utente,
+        a.ID_Veterinario,
+        a.data,
+        v.Nome,
+        v.Cognome
+      FROM appuntamento a
+      JOIN veterinario v ON a.ID_Veterinario = v.ID_Veterinario
+      WHERE a.data >= '${today}';
     `;
 
     // Eseguiamo entrambe le query in parallelo
@@ -41,7 +42,6 @@ export default function handler(req, res) {
           if (err) {
             return reject(err);
           }
-          console.log('Risultati orari dal DB:', results);
           resolve(results);
         });
       }),
@@ -50,7 +50,6 @@ export default function handler(req, res) {
           if (err) {
             return reject(err);
           }
-          console.log('Risultati appuntamenti dal DB:', results);
           resolve(results);
         });
       })
@@ -60,10 +59,8 @@ export default function handler(req, res) {
       console.log('Dati completi appuntamenti:', JSON.stringify(appuntamenti, null, 2));
       
       // Inviamo i dati grezzi al frontend
-      return res.status(200).json({
-        orari,
-        appuntamenti
-      });
+      return res.status(200).json({ orari, appuntamenti });
+
     })
     .catch(err => {
       console.error('Errore durante il recupero dei dati:', err);

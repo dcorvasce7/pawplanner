@@ -19,9 +19,9 @@ function CalendarioOrari() {
   const [description, setDescription] = useState(''); // Stato per la descrizione
   const [userId, setUserId] = useState(null); // Stato per l'ID dell'utente
   const [selectedDate, setSelectedDate] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Definisci localStartDate e localEndDate nel contesto del modal
-  const timeZone = 'Europe/Rome';
   const localStartDate = selectedEvent ? toZonedTime(new Date(selectedEvent.start), 'Europe/Rome') : null;
   const localEndDate = selectedEvent ? toZonedTime(new Date(selectedEvent.end), 'Europe/Rome') : null;
 
@@ -30,7 +30,7 @@ function CalendarioOrari() {
   }, []);
 
   useEffect(() => {
-    if (userId !== null) {
+    if (userId) {
       const today = format(new Date(), 'yyyy-MM-dd');
       fetchEvents(today);
     }
@@ -52,40 +52,54 @@ function CalendarioOrari() {
           orarioFine: orario.Orario_Fine
         });
 
+
         return {
           id: appuntamento.ID_Appuntamento,
-          title: 'Occupato',
+          title: appuntamento.ID_Utente === userId ? 'Il tuo appuntamento' : 'Occupato',
           start: `${dataAppuntamento}T${orario.Orario_Inizio}`,
           end: `${dataAppuntamento}T${orario.Orario_Fine}`,
           description: appuntamento.Descrizione,
-          stato: orario.Stato,
           orarioId: appuntamento.ID_Orario,
-          backgroundColor: '#ff4444', // Rosso per gli appuntamenti
-          borderColor: '#cc0000'
+          backgroundColor: appuntamento.ID_Utente === userId ? '#4a90e2' : '#ff4444', // Blu per i propri appuntamenti
+          borderColor: appuntamento.ID_Utente === userId ? '#357abd' : '#cc0000',
+          userId: appuntamento.ID_Utente, // Aggiungi l'ID_Utente all'evento
+          isClickable: appuntamento.ID_Utente === userId, // Flag per indicare se l'evento è cliccabile
+          veterinarioNome: appuntamento.Nome,
+          veterinarioCognome: appuntamento.Cognome
         };
+
       });
 
+      console.log('Eventi appuntamenti creati:', eventiAppuntamenti.length);
+
       // Poi creiamo gli eventi per gli orari ricorrenti
+      // usiamo flatmap perche' vogliamo creare piu' eventi per ogni orario o 0 eventi se non ci sono le condizioni
       const eventiOrari = orariDisponibili.flatMap(orario => {
         const events = [];
         
         // Prendiamo il primo e l'ultimo giorno del mese
-        const currentDate = selectedDate || new Date();
+        const currentDate = selectedDate;
+        console.log('Data selezionata:', currentDate);
         // Troviamo il mese che stiamo visualizzando
         const viewMonth = currentDate.getMonth();
         const viewYear = currentDate.getFullYear();
+        console.log('Mese visualizzato:', viewMonth + 1, viewYear);
         
         // Creiamo il primo e l'ultimo giorno del mese che stiamo visualizzando
         const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
+        console.log('Primo giorno del mese:', firstDayOfMonth);
         const lastDayOfMonth = new Date(viewYear, viewMonth + 1, 0);
+        console.log('Ultimo giorno del mese:', lastDayOfMonth);
         
         // Prendiamo la data di oggi
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Resettiamo l'ora a mezzanotte
+        console.log('Data di today a mezzanotte:', today);
         
         console.log('Processo orario per il mese corrente:', {
           orario: orario.Giorno,
           orarioInizio: orario.Orario_Inizio,
+          orarioFine: orario.Orario_Fine,
           meseCorrente: viewMonth + 1,
           anno: viewYear,
           dal: format(firstDayOfMonth, 'yyyy-MM-dd'),
@@ -93,8 +107,10 @@ function CalendarioOrari() {
           oggi: format(today, 'yyyy-MM-dd')
         });
 
+
         // Iteriamo su tutti i giorni del mese
         let currentDay = new Date(firstDayOfMonth);
+        console.log('Inizio iterazione giorni:', currentDay);
         while (currentDay <= lastDayOfMonth) {
           // Verifichiamo che il giorno non sia nel passato
           if (currentDay >= today) {
@@ -124,16 +140,11 @@ function CalendarioOrari() {
                   start: `${dateString}T${orario.Orario_Inizio}`,
                   end: `${dateString}T${orario.Orario_Fine}`,
                   description: 'Orario disponibile per prenotazione',
-                  stato: orario.Stato,
                   orarioId: orario.ID_Orario,
                   backgroundColor: '#4CAF50',
-                  borderColor: '#388E3C'
-                });
-              } else {
-                console.log('Orario occupato:', {
-                  data: dateString,
-                  giorno: orario.Giorno,
-                  ora: orario.Orario_Inizio
+                  borderColor: '#388E3C',
+                  veterinarioNome: orario.Nome,
+                  veterinarioCognome: orario.Cognome
                 });
               }
             }
@@ -164,20 +175,18 @@ function CalendarioOrari() {
     }
   };
 
-  const fetchEvents = async (selectedDate) => {
+  const fetchEvents = async () => {
     try {
-      console.log('Richiesta eventi per la data:', selectedDate);
-      const response = await axios.get('/api/getEventsUtente', {
-        params: { selectedDate }
-      });
+      const response = await axios.get('/api/getEventsUtente');
       
       const { orari, appuntamenti } = response.data;
-      console.log('Dati ricevuti dal server:');
+      console.log('Dati memorizzati:');
       console.log('Orari:', orari);
       console.log('Appuntamenti:', appuntamenti);
 
       setOrariDisponibili(orari);
       setAppuntamenti(appuntamenti);
+
     } catch (error) {
       console.error('Errore nel recupero eventi:', error);
     }
@@ -205,17 +214,31 @@ function CalendarioOrari() {
     }
   }
 
-  // Gestore del click sugli eventi
-  const handleEventClick = (info) => {
-    // Impedisce l'apertura del modal per gli appuntamenti già prenotati
-    if (info.event.title === 'Occupato') {
-      return;
-    }
 
-    // Imposta l'evento selezionato
-    setSelectedEvent(info.event);
-    setIsModalOpen(true);  // Apre il modal
-  };
+// Modifica la funzione handleEventClick
+const handleEventClick = (info) => {
+  const event = info.event;
+  
+  if (event.title === 'Occupato' && !event.extendedProps.isClickable) {
+    return;
+  }
+
+  if (event.title === 'Il tuo appuntamento') {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  } else if (event.title === 'Prenotabile') {
+    // Verifica se l'utente ha già un appuntamento
+    const hasExistingAppointment = appuntamenti.some(app => app.ID_Utente === userId);
+    
+    if (hasExistingAppointment) {
+      setErrorMessage('Hai già un appuntamento prenotato. Cancella quello esistente prima di prenotarne uno nuovo.');
+      setIsModalOpen(true);
+    } else {
+      setSelectedEvent(event);
+      setIsModalOpen(true);
+    }
+  }
+};
 
   // Funzione per chiudere il modal
   const closeModal = () => {
@@ -228,12 +251,11 @@ function CalendarioOrari() {
       // Estrai l'ID_Orario originale dall'id composto (es: da "90-2025-02-04" prende "90")
       const originalOrarioId = selectedEvent.extendedProps.orarioId;
       
-      const response = await axios.post('/api/createAppointment', {
+      const response = await axios.post('/api/menageAppointment', {
         ID_Orario: originalOrarioId,
         Descrizione: description,
         ID_Veterinario: 25, // TODO: rendere dinamico
-        data: selectedEvent.startStr,
-        Motivo: 'Visita'
+        data: selectedEvent.startStr
       });
 
       console.log('Appuntamento creato:', {
@@ -250,6 +272,26 @@ function CalendarioOrari() {
       console.error('Errore nella creazione dell\'appuntamento:', error);
     }
   };
+
+  // Aggiungi questa funzione dopo createAppointment
+const deleteAppointment = async () => {
+  try {
+    const response = await axios.delete('/api/menageAppointment', {
+      data: {
+        ID_Appuntamento: selectedEvent.id,
+        ID_Utente: userId // Per verificare che sia l'utente corretto
+      }
+    });
+
+    console.log('Appuntamento cancellato:', selectedEvent.id);
+    
+    // Chiudi il modal e aggiorna gli eventi
+    setIsModalOpen(false);
+    fetchEvents(format(new Date(selectedEvent.start), 'yyyy-MM-dd'));
+  } catch (error) {
+    console.error('Errore nella cancellazione dell\'appuntamento:', error);
+  }
+};
 
   // Funzione per gestire il cambio di date nel calendario
   const handleDatesSet = (arg) => {
@@ -268,12 +310,12 @@ function CalendarioOrari() {
     <div className="calendario-appuntamenti">
       <h2>Calendario Appuntamenti</h2>
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
         initialView="dayGridMonth"
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'timeGridWeek timeGridDay dayGridMonth'
+          right: 'timeGridWeek,timeGridDay,dayGridMonth,listWeek'
         }}
         events={events}
         allDaySlot={false}
@@ -282,45 +324,91 @@ function CalendarioOrari() {
         eventClick={handleEventClick}
         timeZone="Europe/Rome"
         datesSet={handleDatesSet}
-        
+        slotLabelFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false // Formato 24 ore
+        }}
+        eventTimeFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false // Formato 24 ore
+        }}
       />
 
-      {/* Modal per visualizzare i dettagli dell'evento */}
-      <Modal
-        isOpen={isModalOpen}
-        onRequestClose={closeModal}
-        contentLabel="Dettaglio Evento"
-        className="custom-modal" // Aggiungi una classe CSS personalizzata
-        overlayClassName="custom-overlay" // Aggiungi una classe CSS per l'overlay
-      >
-        <div className="modal-header">
-          <h2>Orario prenotabile</h2>
+{/* Modal unificato per tutti i tipi di eventi */}
+<Modal
+  isOpen={isModalOpen}
+  onRequestClose={closeModal}
+  contentLabel={selectedEvent?.title === 'Il tuo appuntamento' ? 'Dettagli Appuntamento' : 'Dettaglio Evento'}
+  className="custom-modal"
+  overlayClassName="custom-overlay"
+>
+<div className="modal-header">
+    <h2>
+      {errorMessage ? 'Attenzione' : 
+        selectedEvent?.title === 'Il tuo appuntamento' 
+          ? 'Dettagli appuntamento' 
+          : 'Orario prenotabile'}
+    </h2>
+  </div>
+  <div className="modal-content">
+    {errorMessage ? (
+      <>
+      <p>{errorMessage}</p>
+      <div className="modal-footer">
+        <button type="button" onClick={() => {
+          setErrorMessage('');
+          closeModal();
+        }}>Chiudi</button>
+      </div>
+      </>
+    ) : selectedEvent?.title === 'Il tuo appuntamento' ? (
+      // Contenuto per la visualizzazione dell'appuntamento
+      <>
+        <p><strong>Data:</strong> {localStartDate ? format(localStartDate, 'dd MMMM yyyy', { locale: it }) : ''}</p>
+        <p><strong>Orario:</strong> {localStartDate ? format(localStartDate, 'HH:mm', { locale: it }) : ''} - {localEndDate ? format(localEndDate, 'HH:mm', { locale: it }) : ''}</p>
+        <p><strong>Motivo:</strong> {selectedEvent?.extendedProps?.description}</p>
+        <p><strong>Dott.</strong> {`${selectedEvent?.extendedProps?.veterinarioNome} ${selectedEvent?.extendedProps?.veterinarioCognome}`}</p>
+
+        <div className="modal-footer">
+          <button type="button" onClick={deleteAppointment}>Cancella</button>
+          <button type="button" onClick={closeModal}>Chiudi</button>
         </div>
-        <div className="modal-content">
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            createAppointment();
-          }}>
-            <div>
-              <label>Descrizione:</label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-            <p><strong>Data:</strong> {localStartDate ? format(localStartDate, 'dd MMMM yyyy', { locale: it }) : ''}</p>
-              <p><strong>Fascia oraria:</strong> {localStartDate ? format(localStartDate, 'HH:mm', { locale: it }) : ''} - {localEndDate ? format(localEndDate, 'HH:mm', { locale: it }) : ''}</p>
-            </div>
-            <div className="modal-footer">
-              <button type="submit">Prenota</button>
-              <button type="button" onClick={closeModal}>Chiudi</button>
-            </div>
-          </form>
+      </>
+    ) : (
+      // Contenuto per la prenotazione di un nuovo appuntamento
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        createAppointment();
+      }}>
+        <div className='form-group'>
+          <label htmlFor='description'>Motivo:</label>
+          <select
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          >
+            <option value="">Seleziona</option>
+            <option value="Prima Visita">Prima Visita</option>
+            <option value="Controllo">Controllo</option>
+            <option value="Vaccinazione">Vaccinazione</option>
+            <option value="Altro">Altro</option>
+          </select>
         </div>
-      </Modal>
+        <div className='info'>
+          <p><strong>Data:</strong> {localStartDate ? format(localStartDate, 'dd MMMM yyyy', { locale: it }) : ''}</p>
+          <p><strong>Fascia oraria:</strong> {localStartDate ? format(localStartDate, 'HH:mm', { locale: it }) : ''} - {localEndDate ? format(localEndDate, 'HH:mm', { locale: it }) : ''}</p>
+          <p><strong>Veterinario:</strong> {`${selectedEvent?.extendedProps?.veterinarioNome} ${selectedEvent?.extendedProps?.veterinarioCognome}`}</p>
+        </div>
+        <div className="modal-footer">
+          <button type="submit">Prenota</button>
+          <button type="button" onClick={closeModal}>Chiudi</button>
+        </div>
+      </form>
+    )}
+  </div>
+</Modal>
     </div>
   );
 }

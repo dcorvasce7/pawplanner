@@ -6,7 +6,6 @@ export default function handler(req, res) {
     const query = `
       SELECT 
         a.ID_Appuntamento,
-        a.Motivo,
         a.Descrizione,
         a.data,
         o.Orario_Inizio,
@@ -32,10 +31,9 @@ export default function handler(req, res) {
 
         return {
           id: event.ID_Appuntamento,
-          title: event.Motivo,
+          title: event.Descrizione,
           start: isoDate + 'T' + event.Orario_Inizio, // es. "2025-02-12T08:00:00"
           end: isoDate + 'T' + event.Orario_Fine,     // es. "2025-02-12T08:30:00"
-          description: event.Descrizione,
           nome: event.Nome,
           cognome: event.Cognome
         };

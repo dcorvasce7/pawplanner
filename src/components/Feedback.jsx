@@ -6,26 +6,40 @@ function Feedback({ role }) {
   const [feedbacks, setFeedbacks] = useState([]);
   const [testo, setTesto] = useState('');
   const [valutazione, setValutazione] = useState(1);
+  const [idVeterinario, setIdVeterinario] = useState('');
+  const [veterinari, setVeterinari] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
   const [userId, setUserId] = useState(null);
+  
 
   useEffect(() => {
     fetchUserId();
+    fetchVeterinari();
     fetchFeedbacks();
   }, []);
 
   const fetchUserId = async () => {
     try {
-      const response = await axios.get('/api/session');
-      setUserId(response.data.user.id);
+      const sessionResponse = await axios.get('/api/session');
+      if (sessionResponse.data.user) {
+        setUserId(sessionResponse.data.user.id);
+      } else {
+        console.error('Nessun dato utente trovato');
+      }
     } catch (error) {
-      console.error('Errore nel recupero dell\'ID utente:', error);
+      console.error('Errore nel recupero dei dati della sessione:', error);
     }
   };
 
   const fetchFeedbacks = async () => {
     try {
-      const response = await axios.get('/api/feedback', { params: { role } });
+      const response = await axios.get('/api/feedback');
+      if (response.data.length === 0) {
+        setMessage('Non ci sono feedback da visualizzare.');
+      } else {
+        setMessage('');
+      }
       setFeedbacks(response.data);
       setLoading(false);
     } catch (error) {
@@ -34,11 +48,21 @@ function Feedback({ role }) {
     }
   };
 
+  const fetchVeterinari = async () => {
+    try {
+      const response = await axios.get('/api/veterinario');
+      setVeterinari(response.data);
+    } catch (error) {
+      console.error('Errore nel recupero dei veterinari:', error);
+    }
+  };
+
   const handleCreate = async () => {
     try {
-      await axios.post('/api/feedback', { testo, valutazione });
+      await axios.post('/api/feedback', { testo, valutazione, idVeterinario });
       setTesto('');
       setValutazione(1);
+      setIdVeterinario('');
       fetchFeedbacks(); // Aggiorna i feedback dopo la creazione
     } catch (error) {
       console.error('Errore nella creazione del feedback:', error);
@@ -48,8 +72,6 @@ function Feedback({ role }) {
   const handleDelete = async (id) => {
     try {
       const response = await axios.delete(`/api/feedback?id=${id}`);
-      console.log('Response data:', response.data); // Log della risposta dell'API
-      console.log('User ID:', userId); // Log dell'ID utente corrente
       if (response.data.userId === userId) {
         fetchFeedbacks(); // Aggiorna i feedback dopo la cancellazione
       } else {
@@ -77,12 +99,20 @@ function Feedback({ role }) {
             onChange={(e) => setTesto(e.target.value)}
             placeholder="Testo"
           />
-          <select value={valutazione} onChange={(e) => setValutazione(e.target.value)}>
+          <select className='val' value={valutazione} onChange={(e) => setValutazione(e.target.value)}>
             {[1, 2, 3, 4, 5].map((val) => (
               <option key={val} value={val}>{val}</option>
             ))}
           </select>
-          <button onClick={handleCreate} disabled={!testo.trim()}>Crea</button>
+          <select className='vet' value={idVeterinario} onChange={(e) => setIdVeterinario(e.target.value)}>
+            <option value="">Seleziona Veterinario</option>
+            {veterinari.map((vet) => (
+              <option key={vet.ID_Veterinario} value={vet.ID_Veterinario}>
+                {vet.Nome} {vet.Cognome}
+              </option>
+            ))}
+          </select>
+          <button onClick={handleCreate} disabled={!testo.trim() || !idVeterinario}>Crea</button>
         </div>
       )}
       <ul className="feedback-list">
@@ -94,16 +124,18 @@ function Feedback({ role }) {
               <p className='user'><strong>{feedback.Nome} {feedback.Cognome}</strong></p>
               <p className='descripion'>Testo: {feedback.Testo}</p>
               <p className='valutation'>Valutazione: {feedback.Valutazione}</p>
+              <p className='veterinario'>Dott. {feedback.CognomeVet} {feedback.NomeVet}</p>
               <p className='date'>Data: {dataFormattata}</p>
-              {role === 'utente' && feedback.ID_Utente === userId && (
-                <div className="button-group">
+              <div className="button-group">
+                {role === 'utente' && feedback.ID_Utente === userId ? (
                   <button onClick={() => handleDelete(feedback.ID_Feedback)}>Cancella</button>
-                </div>
-              )}
+                ) : null}
+              </div>
             </li>
           );
         })}
       </ul>
+      {message && <div className="message">{message}</div>}
     </div>
   );
 }
