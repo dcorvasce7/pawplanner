@@ -6,35 +6,46 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import axios from 'axios';
 import Modal from 'react-modal';
-import { format } from 'date-fns'; // Importa la funzione format
+import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 
 function CalendarioAppuntamenti() {
   const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);  // Per tenere traccia dell'evento selezionato
-  const [isModalOpen, setIsModalOpen] = useState(false);  // Stato per aprire/chiudere il modal
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    fetchEvents();
+  }, []);
+
+
+      const fetchEvents = async () => {
       try {
         const response = await axios.get('/api/getEvents');
-        setEvents(response.data); 
+        const results = response.data; // Dati grezzi
+
+        // Mappiamo i risultati in modo da formare gli eventi per FullCalendar
+        const combinedEvents = results.map(event => ({
+          id: event.ID_Appuntamento,
+          title: event.Descrizione,
+          start: `${format(new Date(event.data), 'yyyy-MM-dd')}T${event.Orario_Inizio}`,
+          end: `${format(new Date(event.data), 'yyyy-MM-dd')}T${event.Orario_Fine}`,
+          nome: event.Nome,
+          cognome: event.Cognome
+        }));
+
+        setEvents(combinedEvents);
       } catch (error) {
         console.error('Errore nel recupero eventi: ', error);
       }
     };
 
-    fetchEvents();
-  }, []);
-
-  // Gestore del click sugli eventi
   const handleEventClick = (info) => {
-    // Imposta l'evento selezionato
     setSelectedEvent(info.event);
-    setIsModalOpen(true);  // Apre il modal
+    setIsModalOpen(true);
   };
 
-  // Funzione per chiudere il modal
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -46,7 +57,7 @@ function CalendarioAppuntamenti() {
         plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         events={events}
-        eventClick={handleEventClick}  // Aggiungi il gestore del click sugli eventi
+        eventClick={handleEventClick}
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
@@ -57,22 +68,21 @@ function CalendarioAppuntamenti() {
         slotLabelFormat={{
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false // Formato 24 ore
+          hour12: false
         }}
         eventTimeFormat={{
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false // Formato 24 ore
+          hour12: false
         }}
       />
 
-      {/* Modal per visualizzare i dettagli dell'evento */}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeModal}
         contentLabel="Dettaglio Evento"
-        className="custom-modal" // Aggiungi una classe CSS personalizzata
-        overlayClassName="custom-overlay" // Aggiungi una classe CSS per l'overlay
+        className="custom-modal"
+        overlayClassName="custom-overlay"
       >
         <div className="modal-header">
           <h2>{selectedEvent ? selectedEvent.title : 'Evento'}</h2>

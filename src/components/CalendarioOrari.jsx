@@ -38,6 +38,36 @@ function CalendarioOrari() {
 
   // Effetto per generare gli eventi quando cambiano orari o appuntamenti
   useEffect(() => {
+    createEvents();
+  }, [orariDisponibili, appuntamenti, selectedDate]);
+
+  const fetchUserId = async () => {
+    try {
+      const response = await axios.get('/api/session');
+      setUserId(response.data.user.id);
+    } catch (error) {
+      console.error('Errore nel recupero dell\'ID utente:', error);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get('/api/getEventsUtente');
+      
+      const { orari, appuntamenti } = response.data;
+      console.log('Dati memorizzati:');
+      console.log('Orari:', orari);
+      console.log('Appuntamenti:', appuntamenti);
+
+      setOrariDisponibili(orari);
+      setAppuntamenti(appuntamenti);
+
+    } catch (error) {
+      console.error('Errore nel recupero eventi:', error);
+    }
+  };
+
+  const createEvents = () => {
     if (orariDisponibili.length > 0) {
       // Prima creiamo gli eventi per gli appuntamenti
       const eventiAppuntamenti = appuntamenti.map(appuntamento => {
@@ -143,6 +173,7 @@ function CalendarioOrari() {
                   orarioId: orario.ID_Orario,
                   backgroundColor: '#4CAF50',
                   borderColor: '#388E3C',
+                  veterinarioID: orario.ID_Veterinario,
                   veterinarioNome: orario.Nome,
                   veterinarioCognome: orario.Cognome
                 });
@@ -164,32 +195,21 @@ function CalendarioOrari() {
         orariDisponibili: eventiOrari.length
       });
     }
-  }, [orariDisponibili, appuntamenti, selectedDate]);
-
-  const fetchUserId = async () => {
-    try {
-      const response = await axios.get('/api/session');
-      setUserId(response.data.user.id);
-    } catch (error) {
-      console.error('Errore nel recupero dell\'ID utente:', error);
-    }
   };
 
-  const fetchEvents = async () => {
-    try {
-      const response = await axios.get('/api/getEventsUtente');
-      
-      const { orari, appuntamenti } = response.data;
-      console.log('Dati memorizzati:');
-      console.log('Orari:', orari);
-      console.log('Appuntamenti:', appuntamenti);
 
-      setOrariDisponibili(orari);
-      setAppuntamenti(appuntamenti);
 
-    } catch (error) {
-      console.error('Errore nel recupero eventi:', error);
-    }
+    // Funzione per gestire il cambio di date nel calendario
+  const handleDatesSet = (arg) => {
+    // Prendiamo il mese dalla data centrale della vista
+    const viewDate = new Date((new Date(arg.start).getTime() + new Date(arg.end).getTime()) / 2);
+    console.log('Cambio vista calendario:', {
+      meseVisualizzato: viewDate.getMonth() + 1,
+      anno: viewDate.getFullYear(),
+      data: format(viewDate, 'yyyy-MM-dd')
+    });
+    setSelectedDate(viewDate);
+    fetchEvents();
   };
 
   // Funzione per convertire il giorno della settimana in numero
@@ -213,7 +233,6 @@ function CalendarioOrari() {
         return null;
     }
   }
-
 
 // Modifica la funzione handleEventClick
 const handleEventClick = (info) => {
@@ -250,11 +269,12 @@ const handleEventClick = (info) => {
     try {
       // Estrai l'ID_Orario originale dall'id composto (es: da "90-2025-02-04" prende "90")
       const originalOrarioId = selectedEvent.extendedProps.orarioId;
+      const originalVeterinarioID = selectedEvent.extendedProps.veterinarioID;
       
       const response = await axios.post('/api/menageAppointment', {
         ID_Orario: originalOrarioId,
         Descrizione: description,
-        ID_Veterinario: 25, // TODO: rendere dinamico
+        ID_Veterinario: originalVeterinarioID, 
         data: selectedEvent.startStr
       });
 
@@ -280,8 +300,9 @@ const deleteAppointment = async () => {
       data: {
         ID_Appuntamento: selectedEvent.id,
         ID_Utente: userId // Per verificare che sia l'utente corretto
-      }
-    });
+      } 
+    }
+  );
 
     console.log('Appuntamento cancellato:', selectedEvent.id);
     
@@ -293,18 +314,6 @@ const deleteAppointment = async () => {
   }
 };
 
-  // Funzione per gestire il cambio di date nel calendario
-  const handleDatesSet = (arg) => {
-    // Prendiamo il mese dalla data centrale della vista
-    const viewDate = new Date((new Date(arg.start).getTime() + new Date(arg.end).getTime()) / 2);
-    console.log('Cambio vista calendario:', {
-      meseVisualizzato: viewDate.getMonth() + 1,
-      anno: viewDate.getFullYear(),
-      data: format(viewDate, 'yyyy-MM-dd')
-    });
-    setSelectedDate(viewDate);
-    fetchEvents(format(viewDate, 'yyyy-MM-dd'));
-  };
 
   return (
     <div className="calendario-appuntamenti">
@@ -322,7 +331,6 @@ const deleteAppointment = async () => {
         locale="it"
         height="auto"
         eventClick={handleEventClick}
-        timeZone="Europe/Rome"
         datesSet={handleDatesSet}
         slotLabelFormat={{
           hour: '2-digit',
@@ -366,8 +374,8 @@ const deleteAppointment = async () => {
     ) : selectedEvent?.title === 'Il tuo appuntamento' ? (
       // Contenuto per la visualizzazione dell'appuntamento
       <>
-        <p><strong>Data:</strong> {localStartDate ? format(localStartDate, 'dd MMMM yyyy', { locale: it }) : ''}</p>
-        <p><strong>Orario:</strong> {localStartDate ? format(localStartDate, 'HH:mm', { locale: it }) : ''} - {localEndDate ? format(localEndDate, 'HH:mm', { locale: it }) : ''}</p>
+        <p><strong>Data:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'dd MMMM yyyy', { locale: it }) : ''}</p>
+        <p><strong>Ora:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'HH:mm', { locale: it }) : ''} - {selectedEvent ? format(new Date(selectedEvent.end), 'HH:mm', { locale: it }) : ''}</p>
         <p><strong>Motivo:</strong> {selectedEvent?.extendedProps?.description}</p>
         <p><strong>Dott.</strong> {`${selectedEvent?.extendedProps?.veterinarioNome} ${selectedEvent?.extendedProps?.veterinarioCognome}`}</p>
 
@@ -397,8 +405,8 @@ const deleteAppointment = async () => {
           </select>
         </div>
         <div className='info'>
-          <p><strong>Data:</strong> {localStartDate ? format(localStartDate, 'dd MMMM yyyy', { locale: it }) : ''}</p>
-          <p><strong>Fascia oraria:</strong> {localStartDate ? format(localStartDate, 'HH:mm', { locale: it }) : ''} - {localEndDate ? format(localEndDate, 'HH:mm', { locale: it }) : ''}</p>
+          <p><strong>Data:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'dd MMMM yyyy', { locale: it }) : ''}</p>
+          <p><strong>Ora:</strong> {selectedEvent ? format(new Date(selectedEvent.start), 'HH:mm', { locale: it }) : ''} - {selectedEvent ? format(new Date(selectedEvent.end), 'HH:mm', { locale: it }) : ''}</p>
           <p><strong>Veterinario:</strong> {`${selectedEvent?.extendedProps?.veterinarioNome} ${selectedEvent?.extendedProps?.veterinarioCognome}`}</p>
         </div>
         <div className="modal-footer">

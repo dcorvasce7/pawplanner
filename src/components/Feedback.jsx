@@ -21,9 +21,9 @@ function Feedback({ role }) {
 
   const fetchUserId = async () => {
     try {
-      const sessionResponse = await axios.get('/api/session');
-      if (sessionResponse.data.user) {
-        setUserId(sessionResponse.data.user.id);
+      const response = await axios.get('/api/session');
+      if (response.data.user) {
+        setUserId(response.data.user.id);
       } else {
         console.error('Nessun dato utente trovato');
       }
@@ -41,10 +41,8 @@ function Feedback({ role }) {
         setMessage('');
       }
       setFeedbacks(response.data);
-      setLoading(false);
     } catch (error) {
       console.error('Errore nel recupero dei feedback:', error);
-      setLoading(false);
     }
   };
 
@@ -59,7 +57,7 @@ function Feedback({ role }) {
 
   const handleCreate = async () => {
     try {
-      await axios.post('/api/feedback', { testo, valutazione, idVeterinario });
+      const response = await axios.post('/api/feedback', { testo, valutazione, idVeterinario });
       setTesto('');
       setValutazione(1);
       setIdVeterinario('');
@@ -69,22 +67,22 @@ function Feedback({ role }) {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (feedback) => {
     try {
-      const response = await axios.delete(`/api/feedback?id=${id}`);
-      if (response.data.userId === userId) {
-        fetchFeedbacks(); // Aggiorna i feedback dopo la cancellazione
-      } else {
+
+      if (feedback.ID_Utente != userId) {
         console.error('Non autorizzato a eliminare questo feedback');
+        return;
       }
+
+      const response = await axios.delete(`/api/feedback?id=${feedback.ID_Feedback}`);
+        fetchFeedbacks(); // Aggiorna i feedback dopo la cancellazione
+
     } catch (error) {
       console.error('Errore nell\'eliminazione del feedback:', error);
     }
   };
 
-  if (loading) {
-    return <div className='loading'>Caricamento...</div>;
-  }
 
   return (
     <div className='feedback-content'>
@@ -128,7 +126,7 @@ function Feedback({ role }) {
               <p className='date'>Data: {dataFormattata}</p>
               <div className="button-group">
                 {role === 'utente' && feedback.ID_Utente === userId ? (
-                  <button onClick={() => handleDelete(feedback.ID_Feedback)}>Cancella</button>
+                  <button onClick={() => handleDelete(feedback)}>Cancella</button>
                 ) : null}
               </div>
             </li>

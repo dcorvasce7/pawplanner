@@ -1,7 +1,21 @@
 import db from '../../../lib/db';
+import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
+
+    // Ottieni i cookie dalla richiesta
+    const cookies = parse(req.headers.cookie || '');
+    const token = cookies.token;
+    if (!token) {
+      return res.status(401).json({ error: 'Non autenticato' });
+    }
+
+    // Verifica il token JWT
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const ID_Utente = decoded.id; // Ottieni l'ID dell'utente dal token decodificato
+
     // Query per unire appuntamento, orario e utente
     const query = `
       SELECT 
@@ -16,6 +30,7 @@ export default function handler(req, res) {
       FROM appuntamento a
       INNER JOIN orario o ON a.ID_Orario = o.ID_Orario
       INNER JOIN utente u ON a.ID_Utente = u.ID_Utente
+      WHERE a.ID_Veterinario = '${ID_Utente}'
     `;
 
     db.query(query, (err, results) => {
@@ -24,22 +39,8 @@ export default function handler(req, res) {
         return res.status(500).json({ error: "Errore interno del server" });
       }
 
-      // Mappiamo i risultati in modo da formare gli eventi per FullCalendar.
-      const events = results.map(event => {
-        // Converti il campo 'data' in formato ISO (YYYY-MM-DD)
-        const isoDate = new Date(event.data).toISOString().split('T')[0]; // Estrae "YYYY-MM-DD"
-
-        return {
-          id: event.ID_Appuntamento,
-          title: event.Descrizione,
-          start: isoDate + 'T' + event.Orario_Inizio, // es. "2025-02-12T08:00:00"
-          end: isoDate + 'T' + event.Orario_Fine,     // es. "2025-02-12T08:30:00"
-          nome: event.Nome,
-          cognome: event.Cognome
-        };
-      });
-
-      return res.status(200).json(events);
+      // Inviamo i dati grezzi al frontend senza mappare
+      return res.status(200).json(results);
     });
   } else {
     return res.status(405).json({ error: "Metodo non consentito" });
