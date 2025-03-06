@@ -24,7 +24,6 @@ function Login() {
       const response = await axios.post(`/api/login_${tipo}`, formData);
 
       if (response.status === 200) {
-        console.log('Login successful:', response.data);
         setMessage('Login riuscito');
         setTimeout(() => {
           router.push(isVeterinario ? '/DashboardVeterinario' : '/DashboardUtente');

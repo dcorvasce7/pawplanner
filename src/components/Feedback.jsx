@@ -8,7 +8,6 @@ function Feedback({ role }) {
   const [valutazione, setValutazione] = useState(1);
   const [idVeterinario, setIdVeterinario] = useState('');
   const [veterinari, setVeterinari] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [userId, setUserId] = useState(null);
   

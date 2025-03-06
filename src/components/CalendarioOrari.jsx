@@ -7,7 +7,6 @@ import interactionPlugin from '@fullcalendar/interaction';
 import axios from 'axios';
 import Modal from 'react-modal';
 import { format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
 import { it } from 'date-fns/locale';
 
 function CalendarioOrari() {
@@ -21,18 +20,13 @@ function CalendarioOrari() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Definisci localStartDate e localEndDate nel contesto del modal
-  const localStartDate = selectedEvent ? toZonedTime(new Date(selectedEvent.start), 'Europe/Rome') : null;
-  const localEndDate = selectedEvent ? toZonedTime(new Date(selectedEvent.end), 'Europe/Rome') : null;
-
   useEffect(() => {
     fetchUserId();
   }, []);
 
   useEffect(() => {
     if (userId) {
-      const today = format(new Date(), 'yyyy-MM-dd');
-      fetchEvents(today);
+      fetchEvents();
     }
   }, [userId]);
 
@@ -55,9 +49,6 @@ function CalendarioOrari() {
       const response = await axios.get('/api/getEventsUtente');
       
       const { orari, appuntamenti } = response.data;
-      console.log('Dati memorizzati:');
-      console.log('Orari:', orari);
-      console.log('Appuntamenti:', appuntamenti);
 
       setOrariDisponibili(orari);
       setAppuntamenti(appuntamenti);
@@ -74,14 +65,6 @@ function CalendarioOrari() {
         const orario = orariDisponibili.find(o => o.ID_Orario === appuntamento.ID_Orario);
         // Convertiamo la data dell'appuntamento in YYYY-MM-DD
         const dataAppuntamento = format(new Date(appuntamento.data), 'yyyy-MM-dd');
-        
-        console.log('Creo evento appuntamento:', {
-          id: appuntamento.ID_Appuntamento,
-          data: dataAppuntamento,
-          orarioInizio: orario.Orario_Inizio,
-          orarioFine: orario.Orario_Fine
-        });
-
 
         return {
           id: appuntamento.ID_Appuntamento,
@@ -99,9 +82,6 @@ function CalendarioOrari() {
         };
 
       });
-
-      console.log('Eventi appuntamenti creati:', eventiAppuntamenti.length);
-
       // Poi creiamo gli eventi per gli orari ricorrenti
       // usiamo flatmap perche' vogliamo creare piu' eventi per ogni orario o 0 eventi se non ci sono le condizioni
       const eventiOrari = orariDisponibili.flatMap(orario => {
@@ -125,18 +105,6 @@ function CalendarioOrari() {
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Resettiamo l'ora a mezzanotte
         console.log('Data di today a mezzanotte:', today);
-        
-        console.log('Processo orario per il mese corrente:', {
-          orario: orario.Giorno,
-          orarioInizio: orario.Orario_Inizio,
-          orarioFine: orario.Orario_Fine,
-          meseCorrente: viewMonth + 1,
-          anno: viewYear,
-          dal: format(firstDayOfMonth, 'yyyy-MM-dd'),
-          al: format(lastDayOfMonth, 'yyyy-MM-dd'),
-          oggi: format(today, 'yyyy-MM-dd')
-        });
-
 
         // Iteriamo su tutti i giorni del mese
         let currentDay = new Date(firstDayOfMonth);
@@ -203,11 +171,7 @@ function CalendarioOrari() {
   const handleDatesSet = (arg) => {
     // Prendiamo il mese dalla data centrale della vista
     const viewDate = new Date((new Date(arg.start).getTime() + new Date(arg.end).getTime()) / 2);
-    console.log('Cambio vista calendario:', {
-      meseVisualizzato: viewDate.getMonth() + 1,
-      anno: viewDate.getFullYear(),
-      data: format(viewDate, 'yyyy-MM-dd')
-    });
+
     setSelectedDate(viewDate);
     fetchEvents();
   };
@@ -234,7 +198,7 @@ function CalendarioOrari() {
     }
   }
 
-// Modifica la funzione handleEventClick
+// funzione handleEventClick
 const handleEventClick = (info) => {
   const event = info.event;
   
@@ -278,16 +242,10 @@ const handleEventClick = (info) => {
         data: selectedEvent.startStr
       });
 
-      console.log('Appuntamento creato:', {
-        orarioId: originalOrarioId,
-        data: selectedEvent.startStr,
-        descrizione: description
-      });
-
       // Chiudi il modal e aggiorna gli eventi
       setIsModalOpen(false);
       setDescription('');
-      fetchEvents(format(new Date(selectedEvent.start), 'yyyy-MM-dd'));
+      fetchEvents();
     } catch (error) {
       console.error('Errore nella creazione dell\'appuntamento:', error);
     }
@@ -302,13 +260,10 @@ const deleteAppointment = async () => {
         ID_Utente: userId // Per verificare che sia l'utente corretto
       } 
     }
-  );
-
-    console.log('Appuntamento cancellato:', selectedEvent.id);
-    
+  );    
     // Chiudi il modal e aggiorna gli eventi
     setIsModalOpen(false);
-    fetchEvents(format(new Date(selectedEvent.start), 'yyyy-MM-dd'));
+    fetchEvents();
   } catch (error) {
     console.error('Errore nella cancellazione dell\'appuntamento:', error);
   }

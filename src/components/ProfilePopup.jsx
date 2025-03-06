@@ -3,7 +3,10 @@ import axios from 'axios';
 import FormComponent from './FormComponent'; // Importiamo il FormComponent
 
 function ProfilePopup({ role }) {
+  //per ricavare l'ID dell'utente
   const [user, setUser] = useState(null);
+
+  //per salvare i dati dell'utente
   const [formData, setFormData] = useState({
     Nome: '',
     Cognome: '',
@@ -22,50 +25,52 @@ function ProfilePopup({ role }) {
   const [originalData, setOriginalData] = useState(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // Recupera i dati dell'utente dalla sessione tramite il JWT
-        const sessionResponse = await axios.get('/api/session');
-        console.log(sessionResponse.data); // Aggiungi questo log
-        
-        if (sessionResponse.data.user) {
-          const userId = sessionResponse.data.user.id;
-
-          if (userId) {
-            // Usa l'ID per fare la richiesta alla tua API per ottenere i dati dell'utente o del veterinario
-            const endpoint = role === 'veterinario' ? `/api/veterinario?id=${userId}` : `/api/utente?id=${userId}`;
-            const response = await axios.get(endpoint);
-            if (response.data) {
-              setUser(response.data);
-              setFormData({
-                Nome: response.data.Nome || '',
-                Cognome: response.data.Cognome || '',
-                email: response.data.email || response.data.Email || '',
-                telefono: response.data.telefono || response.data.Numero_di_telefono || '',
-                ragione_sociale: response.data.ragione_sociale || '',
-                partita_iva: response.data.partita_iva || '',
-                codice_fiscale: response.data.codice_fiscale || '',
-                indirizzo: response.data.indirizzo || '',
-                cap: response.data.cap || '',
-                citta: response.data.citta || '',
-                specializzazione: response.data.specializzazione || '',
-                num_iscrizione_albo: response.data.num_iscrizione_albo || ''
-              });
-              setOriginalData(response.data);
-            }
-          } else {
-            console.error('ID utente non trovato nella sessione.');
-          }
-        } else {
-          console.error('Nessun dato utente trovato');
-        }
-      } catch (error) {
-        console.error('Errore nel recupero dei dati dell\'utente:', error);
-      }
-    };
-
     fetchUserData();
   }, [role]);
+
+  const fetchUserData = async () => {
+    try {
+      // Recupera i dati dell'utente dalla sessione tramite il JWT
+      const sessionResponse = await axios.get('/api/session');
+      
+      if (sessionResponse.data.user) {
+        const userId = sessionResponse.data.user.id;
+
+        if (userId) {
+          // Usa l'ID per fare la richiesta alla tua API per ottenere i dati dell'utente o del veterinario
+          const endpoint = role === 'veterinario' ? `/api/veterinario?id=${userId}` : `/api/utente?id=${userId}`;
+          const response = await axios.get(endpoint);
+          console.log("Response: ", response.data); // Aggiungi questo log
+          if (response.data) {
+            setUser(response.data);
+            setFormData({
+              Nome: response.data.Nome || '',
+              Cognome: response.data.Cognome || '',
+              email: response.data.email || response.data.Email || '',
+              telefono: response.data.telefono || response.data.Numero_di_telefono || '',
+              ragione_sociale: response.data.ragione_sociale || '',  
+              partita_iva: response.data.partita_iva || '',
+              codice_fiscale: response.data.codice_fiscale || '',
+              indirizzo: response.data.indirizzo || '',
+              cap: response.data.cap || '',
+              citta: response.data.citta || '',
+              specializzazione: response.data.specializzazione || '',
+              num_iscrizione_albo: response.data.num_iscrizione_albo || ''
+            });
+
+            //setta i dati originali presi dal backend
+            setOriginalData(response.data);
+          }
+        } else {
+          console.error('ID utente non trovato nella sessione.');
+        }
+      } else {
+        console.error('Nessun dato utente trovato');
+      }
+    } catch (error) {
+      console.error('Errore nel recupero dei dati dell\'utente:', error);
+    }
+  };
 
   const handleSubmit = async (e, formData) => {
     e.preventDefault();
@@ -83,6 +88,7 @@ function ProfilePopup({ role }) {
 
     try {
       const endpoint = role === 'veterinario' ? `/api/veterinario?id=${user.ID_Veterinario}` : `/api/utente?id=${user.ID_Utente}`;
+      
       const response = await axios.put(endpoint, formData);
       if (response.status === 200) {
         alert('Dati aggiornati con successo');
