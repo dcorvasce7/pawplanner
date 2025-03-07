@@ -41,7 +41,7 @@ export default async function handler(req, res) {
           console.error('Errore nella creazione del feedback: ', err);
           return res.status(500).json({ error: 'Errore interno del server' });
         }
-        return res.status(201).json({ ID_Feedback: results.insertId, Testo: testo, Valutazione: valutazione, ID_Utente: idUtente, ID_Veterinario: 25});
+        return res.status(201).json({ ID_Feedback: results.insertId, Testo: testo, Valutazione: valutazione, ID_Utente: idUtente, ID_Veterinario: idVeterinario});
       }
     );
   } else if (req.method === 'DELETE') {
